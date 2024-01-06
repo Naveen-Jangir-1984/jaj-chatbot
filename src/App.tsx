@@ -134,7 +134,7 @@ function App() {
               // application on change
               onChange={(e) => {
                 const option = e.target.value
-                if (option === application || option === "") return
+                if (option === application) return
                 if (option === "azure") getAzureProjects()
                 setApplication(option)
               }}>
@@ -150,22 +150,24 @@ function App() {
               // project on change
               onChange={(e) => {
                 const option = e.target.value
-                if (option === azure.project || option === "") return
+                if (option === azure.project) return
                 setAzure({ ...azure, project: option })
-                switch (application) {
-                  case "azure":
-                    setConversation([...conversation, {
-                      message: <div>
-                        <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
-                        <br></br>
-                        <div>{` - create an issue?`}</div>
-                      </div>,
-                      user: "system",
-                      keyword: "azure activity"
-                    }])
-                    break;
-                  default:
-                    break;
+                if (option.length) {
+                  switch (application) {
+                    case "azure":
+                      setConversation([...conversation, {
+                        message: <div>
+                          <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
+                          <br></br>
+                          <div>{` - create an issue?`}</div>
+                        </div>,
+                        user: "system",
+                        keyword: "azure activity"
+                      }])
+                      break;
+                    default:
+                      break;
+                  }
                 }
               }}
             >
