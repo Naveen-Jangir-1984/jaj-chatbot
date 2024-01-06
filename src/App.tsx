@@ -3,45 +3,49 @@ import axios from 'axios';
 import './app.css';
 
 function App() {
+  // variable types
   type ConverstaionType = { message: string }
 
-  const applications = ["jenkins", "jira", "azure"]
-
-  // const [jenkins, setJenkins] = useState({
-  //   job: "",
-  //   jobs: [],
-  //   build: [],
-  //   builds: []
-  // })
-
-  // const [jira, setJira] = useState({
-  //   issue: {
-  //     summary: "",
-  //     description: ""
-  //   },
-  // })
-
+  // application variables
+  const localServer = process.env.REACT_APP_LOCAL_SERVER;
+  const applications = ["azure", "jenkins", "jira"]
   const [application, setApplication] = useState('')
-  const localServer = `http://localhost:8000`;
   const [conversation, setConversation] = useState<ConverstaionType[]>([])
   const [text, setText] = useState('')
+  const [jenkins, setJenkins] = useState({
+    job: "",
+    jobs: [],
+    build: [],
+    builds: []
+  })
+  const [jira, setJira] = useState({
+    issue: {
+      summary: "",
+      description: ""
+    },
+  })
 
-  // const trigger = async (job: string) => {
-  //   await axios.post(`${localServer}/triggerjob`, { jobname: job, })
-  //     .then((res) => console.log(res.data.msg));
-  // }
+  // applications functions
+  const trigger = async (job: string) => {
+    if (application !== "jenkins") return
+    await axios.post(`${localServer}/triggerjob`, { jobname: job, })
+      .then((res) => console.log(res.data.msg));
+  }
 
-  // const getJobs = async () => {
-  //   await axios.get(`${localServer}/getjobs`)
-  //     .then((res) => setJenkins({ ...jenkins, jobs: res.data.jobs }))
-  // }
+  const getJobs = async () => {
+    if (application !== "jenkins") return
+    await axios.get(`${localServer}/getjobs`)
+      .then((res) => setJenkins({ ...jenkins, jobs: res.data.jobs }))
+  }
 
-  // const getBuilds = async (jobname: string) => {
-  //   await axios.post(`${localServer}/getbuilds`, { jobname: jobname, })
-  //     .then((res) => { setJenkins({ ...jenkins, builds: res.data.builds }) })
-  // }
+  const getBuilds = async (jobname: string) => {
+    if (application !== "jenkins") return
+    await axios.post(`${localServer}/getbuilds`, { jobname: jobname, })
+      .then((res) => { setJenkins({ ...jenkins, builds: res.data.builds }) })
+  }
 
   const createIssueInJira = async () => {
+    if (application !== "jira") return
     const issue = {
       fields: {
         project: {
@@ -61,6 +65,7 @@ function App() {
   }
 
   const createIssueInAzure = async () => {
+    if (application !== "azure") return
     const issue = [
       {
         op: 'add',
@@ -84,6 +89,7 @@ function App() {
       .then(res => console.log(res.data));
   }
 
+  // javascript + html code
   return (
     <div className="app">
       <div className="head">head</div>
