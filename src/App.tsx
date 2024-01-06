@@ -87,7 +87,9 @@ function App() {
   return (
     <div className="app">
       <div className="head">head</div>
-      <div className="display">{conversation.map((c, i) => <div key={i}>{c.message}</div>)}</div>
+      <div className="display">{conversation.map((c, i) =>
+        <div className="message" key={i}>{c.message}</div>
+      )}</div>
       <div className="input">
         <div className="user-input">
           <div className="applications">
@@ -125,7 +127,6 @@ function App() {
           onClick={() => {
             text.length && setConversation([...conversation, { message: text }])
             text.length && setText("")
-            createIssueInAzure()
           }}
           disabled={application.length ? false : true}
         >Send</button>

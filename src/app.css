@@ -21,13 +21,21 @@
 }
 
 .display {
+  padding: 5px 10px;
   width: 98%;
   height: calc(100% - 200px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-end;
+  align-items: flex-start;
   box-shadow: 0 0 1px 0 black;
+  box-sizing: border-box;
+}
+
+.message {
+  margin: 5px 0;
+  padding: 5px 10px;
+  background-color: white;
   box-sizing: border-box;
 }
 
