@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import axios from 'axios';
 import './app.css';
 
 function App() {
   // variable types
-  type ConverstaionType = { message: string }
+  type ConversationType = {
+    message: ReactNode,
+    user: "user" | "system",
+    keyword: string,
+  }
 
   // application variables
-  const localServer = process.env.REACT_APP_LOCAL_SERVER;
   const applications = ["azure", "jenkins", "jira"]
   const [application, setApplication] = useState('')
-  const [conversation, setConversation] = useState<ConverstaionType[]>([])
+  const [conversation, setConversation] = useState<ConversationType[]>([])
   const [text, setText] = useState('')
   const [jenkins, setJenkins] = useState({
     job: "",
@@ -18,9 +21,9 @@ function App() {
     build: [],
     builds: []
   })
-  const [jira, setJira] = useState({
+  const [azure, setAzure] = useState({
     issue: {
-      summary: "",
+      title: "",
       description: ""
     },
   })
@@ -28,19 +31,19 @@ function App() {
   // applications functions
   const trigger = async (job: string) => {
     if (application !== "jenkins") return
-    await axios.post(`${localServer}/triggerjob`, { jobname: job, })
+    await axios.post(`http://localhost:8000/triggerjob`, { jobname: job, })
       .then((res) => console.log(res.data.msg));
   }
 
   const getJobs = async () => {
     if (application !== "jenkins") return
-    await axios.get(`${localServer}/getjobs`)
+    await axios.get(`http://localhost:8000/getjobs`)
       .then((res) => setJenkins({ ...jenkins, jobs: res.data.jobs }))
   }
 
   const getBuilds = async (jobname: string) => {
     if (application !== "jenkins") return
-    await axios.post(`${localServer}/getbuilds`, { jobname: jobname, })
+    await axios.post(`http://localhost:8000/getbuilds`, { jobname: jobname, })
       .then((res) => { setJenkins({ ...jenkins, builds: res.data.builds }) })
   }
 
@@ -60,22 +63,22 @@ function App() {
     };
 
     await axios.post(
-      `${localServer}/createJiraIssue`, { issue: issue })
+      `http://localhost:8000/createJiraIssue`, { issue: issue })
       .then(res => console.log(res.data));
   }
 
-  const createIssueInAzure = async () => {
+  const createIssueInAzure = async (title: string, desc: string) => {
     if (application !== "azure") return
     const issue = [
       {
         op: 'add',
         path: '/fields/System.Title',
-        value: "Login",
+        value: title,
       },
       {
         op: 'add',
         path: '/fields/System.Description',
-        value: "Login with valid creds",
+        value: desc,
       },
       {
         op: 'add',
@@ -85,27 +88,50 @@ function App() {
     ];
 
     await axios.post(
-      `${localServer}/createAzureIssue`, { issue: issue })
-      .then(res => console.log(res.data));
+      `http://localhost:8000/createAzureIssue`, { issue: issue })
+      .then(res => {
+        setConversation([...conversation, {
+          message: <div>
+            <div style={{ fontWeight: "bold" }}>Issue #{res.data.data.id} has been succesfully created!</div>
+            <br></br>
+            <div>{`which below activities you wish to perform in ${application.toUpperCase()}?`}</div>
+            <div>{` - create an issue?`}</div>
+          </div>,
+          user: "system",
+          keyword: "azure activity"
+        }
+        ])
+        setAzure({ issue: { title: "", description: "" } })
+      });
   }
 
-  // javascript + html code
+  // JSX code
   return (
     <div className="app">
-      <div className="head">head</div>
-      <div className="display">{conversation.map((c, i) =>
+      <div className="head">CHATBOT</div>
+      <div className="display">{conversation.map((c: { message: ReactNode }, i) =>
         <div className="message" key={i}>{c.message}</div>
-      )}</div>
+      )}
+      </div>
       <div className="input">
         <div className="user-input">
           <div className="applications">
             <select value={application} onChange={(e) => {
               const option = e.target.value
+              if (option === application) return
               setApplication(option)
-              option.length && setConversation([...conversation, {
-                message: `what activity you wish to perform in ${option.toUpperCase()} ?`
-              }])
               switch (option) {
+                case "azure":
+                  option.length && setConversation([...conversation, {
+                    message: <div>
+                      <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
+                      <br></br>
+                      <div>{` - create an issue?`}</div>
+                    </div>,
+                    user: "system",
+                    keyword: "azure activity"
+                  }])
+                  break;
                 default:
                   break;
               }
@@ -131,13 +157,42 @@ function App() {
         </div>
         <button
           onClick={() => {
-            text.length && setConversation([...conversation, { message: text }])
-            text.length && setText("")
+            if (application === "azure" &&
+              conversation[conversation.length - 1].user === "system" &&
+              conversation[conversation.length - 1].keyword === "azure activity") {
+              setConversation([...conversation,
+              { message: <div>{text}</div>, user: "user", keyword: "create issue" },
+              { message: <div>{`please provide an issue title`}</div>, user: "system", keyword: "issue title" }
+              ])
+            }
+            else if (application === "azure" &&
+              conversation[conversation.length - 1].user === "system" &&
+              conversation[conversation.length - 1].keyword === "issue title") {
+              setAzure({ ...azure, issue: { ...azure.issue, title: text } })
+              setConversation([...conversation,
+              { message: <div>{text}</div>, user: "user", keyword: "issue title" },
+              { message: <div>{`please enter issue description`}</div>, user: "system", keyword: "issue description" }
+              ])
+            }
+            else if (application === "azure" &&
+              conversation[conversation.length - 1].user === "system" &&
+              conversation[conversation.length - 1].keyword === "issue description") {
+              setAzure({ ...azure, issue: { ...azure.issue, description: text } })
+              setConversation([...conversation,
+              { message: <div>{text}</div>, user: "user", keyword: "issue description" },
+              ])
+              createIssueInAzure(azure.issue.title, text)
+            } else if (application === "azure" &&
+              conversation[conversation.length - 1].user === "system" &&
+              conversation[conversation.length - 1].keyword === "completed") {
+
+            }
+            setText("")
           }}
-          disabled={application.length ? false : true}
+          disabled={application.length && text.length ? false : true}
         >Send</button>
       </div>
-      <div className="foot">foot</div>
+      <div className="foot">CHATBOT</div>
     </div>
   );
 }

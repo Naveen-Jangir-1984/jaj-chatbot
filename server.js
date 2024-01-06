@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -10,10 +11,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 //JENKINS ------------------------------------------------------------
-const jenkinsServer = process.env.REACT_APP_JENKINS_SERVER;
+const jenkinsServer = process.env.JENKINS_SERVER;
 const crumbIssuerApiUrl = `${jenkinsServer}/crumbIssuer/api/json`;
-const jenkinsUsername = process.env.REACT_APP_JENKINS_USERNAME;
-const jenkinsApiToken = process.env.REACT_APP_JENKINS_API_TOKEN;
+const jenkinsUsername = process.env.JENKINS_USERNAME;
+const jenkinsApiToken = process.env.JENKINS_API_TOKEN;
 
 app.post('/triggerjob', async (req, res) => {
   const jobName = req.body.jobname;
@@ -84,8 +85,8 @@ app.post('/getbuilds', async (req, res) => {
 })
 
 //JIRA ---------------------------------------------------------------
-const jiraEmail = process.env.REACT_APP_JIRA_EMAIL;
-const jiraAPIToken = process.env.REACT_APP_JIRA_API_TOKEN
+const jiraEmail = process.env.JIRA_EMAIL;
+const jiraAPIToken = process.env.JIRA_API_TOKEN
 
 app.post('/createJiraIssue', async (req, res) => {
   const issue = req.body.issue
@@ -107,9 +108,9 @@ app.post('/createJiraIssue', async (req, res) => {
 })
 
 //AZURE --------------------------------------------------------------
-const azureDevOpsOrganization = process.env.REACT_APP_AZURE_DEVOPS_ORGANIZATION;
-const azureDevOpsProject = process.env.REACT_APP_AZURE_DEVOPS_PROJECT
-const azureDevOpsPersonalAccessToken = process.env.REACT_APP_AZURE_DEVOPS_API_TOKEN
+const azureDevOpsOrganization = process.env.AZURE_DEVOPS_ORGANIZATION;
+const azureDevOpsProject = process.env.AZURE_DEVOPS_PROJECT
+const azureDevOpsPersonalAccessToken = process.env.AZURE_DEVOPS_API_TOKEN
 
 app.post('/createAzureIssue', async (req, res) => {
   const issue = req.body.issue
