@@ -109,15 +109,26 @@ app.post('/createJiraIssue', async (req, res) => {
 
 //AZURE --------------------------------------------------------------
 const azureDevOpsOrganization = process.env.AZURE_DEVOPS_ORGANIZATION;
-const azureDevOpsProject = process.env.AZURE_DEVOPS_PROJECT
 const azureDevOpsPersonalAccessToken = process.env.AZURE_DEVOPS_API_TOKEN
 
+app.get('/getAzureProjects', async (req, res) => {
+  let data;
+
+  await axios.get(`https://dev.azure.com/${azureDevOpsOrganization}/_apis/projects?api-version=7.1`, {
+    headers: {
+      Authorization: `Basic ${btoa(`:rq3jmyylijofightsbiwvzwooan3kcmfkpdd7do4gdbpjrggej5q`)}`,
+    },
+  }).then(res => data = res.data);
+  res.json({ data: data })
+})
+
 app.post('/createAzureIssue', async (req, res) => {
+  const project = req.body.project
   const issue = req.body.issue
   let data;
 
   await axios.post(
-    `https://dev.azure.com/${azureDevOpsOrganization}/${azureDevOpsProject}/_apis/wit/workitems/$Issue?api-version=7.1`,
+    `https://dev.azure.com/${azureDevOpsOrganization}/${project}/_apis/wit/workitems/$Issue?api-version=7.1`,
     issue,
     {
       headers: {

@@ -22,6 +22,8 @@ function App() {
     builds: []
   })
   const [azure, setAzure] = useState({
+    projects: [],
+    project: "",
     issue: {
       title: "",
       description: ""
@@ -67,6 +69,14 @@ function App() {
       .then(res => console.log(res.data));
   }
 
+  const getAzureProjects = async () => {
+    await axios.get(
+      `http://localhost:8000/getAzureProjects`)
+      .then(res => setAzure({
+        ...azure, projects: res.data.data.value.map((pro: { name: string }) => pro.name)
+      }))
+  };
+
   const createIssueInAzure = async (title: string, desc: string) => {
     if (application !== "azure") return
     const issue = [
@@ -88,20 +98,20 @@ function App() {
     ];
 
     await axios.post(
-      `http://localhost:8000/createAzureIssue`, { issue: issue })
+      `http://localhost:8000/createAzureIssue`, { project: azure.project, issue: issue })
       .then(res => {
         setConversation([...conversation, {
           message: <div>
             <div style={{ fontWeight: "bold" }}>Issue #{res.data.data.id} has been succesfully created!</div>
             <br></br>
-            <div>{`which below activities you wish to perform in ${application.toUpperCase()}?`}</div>
+            <div>{`which below activities you wish to perform in ${azure.project.toUpperCase()}?`}</div>
             <div>{` - create an issue?`}</div>
           </div>,
           user: "system",
           keyword: "azure activity"
         }
         ])
-        setAzure({ issue: { title: "", description: "" } })
+        setAzure({ ...azure, issue: { title: "", description: "" } })
       });
   }
 
@@ -116,43 +126,55 @@ function App() {
       <div className="input">
         <div className="user-input">
           <div className="applications">
-            <select value={application} onChange={(e) => {
+            <select className="application" value={application} onChange={(e) => {
               const option = e.target.value
-              if (option === application) return
+              if (option === application || "") return
+              if (option === "azure") getAzureProjects()
               setApplication(option)
-              switch (option) {
-                case "azure":
-                  option.length && setConversation([...conversation, {
-                    message: <div>
-                      <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
-                      <br></br>
-                      <div>{` - create an issue?`}</div>
-                    </div>,
-                    user: "system",
-                    keyword: "azure activity"
-                  }])
-                  break;
-                default:
-                  break;
-              }
             }}>
-              <option value="">select an application</option>
+              <option value="">application</option>
               {applications.map((app, i) =>
                 <option key={i} value={app}>{app}</option>
               )}
             </select>
-            <div className="dates">
+            {application === "azure" ? <select className="project"
+              value={azure.project}
+              onChange={(e) => {
+                const option = e.target.value
+                if (option === azure.project || "") return
+                setAzure({ ...azure, project: e.target.value })
+                switch (application) {
+                  case "azure":
+                    setConversation([...conversation, {
+                      message: <div>
+                        <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
+                        <br></br>
+                        <div>{` - create an issue?`}</div>
+                      </div>,
+                      user: "system",
+                      keyword: "azure activity"
+                    }])
+                    break;
+                  default:
+                    break;
+                }
+              }}
+            >
+              <option value="">projects</option>
+              {azure.projects.map((pro, i) => <option key={i} value={pro}>{pro}</option>)}
+            </select> : ""}
+            {/* <div className="dates">
               <label>FROM</label>
               <input type="date" disabled={application.length ? false : true} />
               <label>TO</label>
               <input type="date" disabled={application.length ? false : true} />
-            </div>
+            </div> */}
           </div>
           <input
             type="text"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            disabled={application.length ? false : true}
+            disabled={application === "azure" && azure.project.length ? false : true}
           />
         </div>
         <button
