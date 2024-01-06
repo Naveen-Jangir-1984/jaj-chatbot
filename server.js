@@ -113,18 +113,16 @@ const azureDevOpsPersonalAccessToken = process.env.AZURE_DEVOPS_API_TOKEN
 
 app.get('/getAzureProjects', async (req, res) => {
   let data;
-
   await axios.get(`https://dev.azure.com/${azureDevOpsOrganization}/_apis/projects?api-version=7.1`, {
     headers: {
-      Authorization: `Basic ${btoa(`:rq3jmyylijofightsbiwvzwooan3kcmfkpdd7do4gdbpjrggej5q`)}`,
+      Authorization: `Basic ${btoa(`:${azureDevOpsPersonalAccessToken}`)}`,
     },
   }).then(res => data = res.data);
-  res.json({ data: data })
+  res.json({ data })
 })
 
 app.post('/createAzureIssue', async (req, res) => {
-  const project = req.body.project
-  const issue = req.body.issue
+  const { project, issue } = req.body
   let data;
 
   await axios.post(

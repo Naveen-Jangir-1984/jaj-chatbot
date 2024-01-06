@@ -15,12 +15,12 @@ function App() {
   const [application, setApplication] = useState('')
   const [conversation, setConversation] = useState<ConversationType[]>([])
   const [text, setText] = useState('')
-  const [jenkins, setJenkins] = useState({
-    job: "",
-    jobs: [],
-    build: [],
-    builds: []
-  })
+  // const [jenkins, setJenkins] = useState({
+  //   job: "",
+  //   jobs: [],
+  //   build: [],
+  //   builds: []
+  // })
   const [azure, setAzure] = useState({
     projects: [],
     project: "",
@@ -31,43 +31,43 @@ function App() {
   })
 
   // applications functions
-  const trigger = async (job: string) => {
-    if (application !== "jenkins") return
-    await axios.post(`http://localhost:8000/triggerjob`, { jobname: job, })
-      .then((res) => console.log(res.data.msg));
-  }
+  // const trigger = async (job: string) => {
+  //   if (application !== "jenkins") return
+  //   await axios.post(`http://localhost:8000/triggerjob`, { jobname: job, })
+  //     .then((res) => console.log(res.data.msg));
+  // }
 
-  const getJobs = async () => {
-    if (application !== "jenkins") return
-    await axios.get(`http://localhost:8000/getjobs`)
-      .then((res) => setJenkins({ ...jenkins, jobs: res.data.jobs }))
-  }
+  // const getJobs = async () => {
+  //   if (application !== "jenkins") return
+  //   await axios.get(`http://localhost:8000/getjobs`)
+  //     .then((res) => setJenkins({ ...jenkins, jobs: res.data.jobs }))
+  // }
 
-  const getBuilds = async (jobname: string) => {
-    if (application !== "jenkins") return
-    await axios.post(`http://localhost:8000/getbuilds`, { jobname: jobname, })
-      .then((res) => { setJenkins({ ...jenkins, builds: res.data.builds }) })
-  }
+  // const getBuilds = async (jobname: string) => {
+  //   if (application !== "jenkins") return
+  //   await axios.post(`http://localhost:8000/getbuilds`, { jobname: jobname, })
+  //     .then((res) => { setJenkins({ ...jenkins, builds: res.data.builds }) })
+  // }
 
-  const createIssueInJira = async () => {
-    if (application !== "jira") return
-    const issue = {
-      fields: {
-        project: {
-          key: "TEST"
-        },
-        summary: "login",
-        description: "login with valid credentials",
-        issuetype: {
-          name: 'Story',
-        },
-      },
-    };
+  // const createIssueInJira = async () => {
+  //   if (application !== "jira") return
+  //   const issue = {
+  //     fields: {
+  //       project: {
+  //         key: "TEST"
+  //       },
+  //       summary: "login",
+  //       description: "login with valid credentials",
+  //       issuetype: {
+  //         name: 'Story',
+  //       },
+  //     },
+  //   };
 
-    await axios.post(
-      `http://localhost:8000/createJiraIssue`, { issue: issue })
-      .then(res => console.log(res.data));
-  }
+  //   await axios.post(
+  //     `http://localhost:8000/createJiraIssue`, { issue: issue })
+  //     .then(res => console.log(res.data));
+  // }
 
   const getAzureProjects = async () => {
     await axios.get(
@@ -119,6 +119,7 @@ function App() {
   return (
     <div className="app">
       <div className="head">CHATBOT</div>
+      {/* display messages */}
       <div className="display">{conversation.map((c: { message: ReactNode }, i) =>
         <div className="message" key={i}>{c.message}</div>
       )}
@@ -126,23 +127,31 @@ function App() {
       <div className="input">
         <div className="user-input">
           <div className="applications">
-            <select className="application" value={application} onChange={(e) => {
-              const option = e.target.value
-              if (option === application || "") return
-              if (option === "azure") getAzureProjects()
-              setApplication(option)
-            }}>
+            {/* select application */}
+            <select
+              className="application"
+              value={application}
+              // application on change
+              onChange={(e) => {
+                const option = e.target.value
+                if (option === application || option === "") return
+                if (option === "azure") getAzureProjects()
+                setApplication(option)
+              }}>
               <option value="">application</option>
               {applications.map((app, i) =>
                 <option key={i} value={app}>{app}</option>
               )}
             </select>
-            {application === "azure" ? <select className="project"
+            {/* select projects */}
+            {application === "azure" ? <select
+              className="project"
               value={azure.project}
+              // project on change
               onChange={(e) => {
                 const option = e.target.value
-                if (option === azure.project || "") return
-                setAzure({ ...azure, project: e.target.value })
+                if (option === azure.project || option === "") return
+                setAzure({ ...azure, project: option })
                 switch (application) {
                   case "azure":
                     setConversation([...conversation, {
@@ -170,6 +179,7 @@ function App() {
               <input type="date" disabled={application.length ? false : true} />
             </div> */}
           </div>
+          {/* user input on console */}
           <input
             type="text"
             value={text}
@@ -177,6 +187,7 @@ function App() {
             disabled={application === "azure" && azure.project.length ? false : true}
           />
         </div>
+        {/* send button */}
         <button
           onClick={() => {
             if (application === "azure" &&
