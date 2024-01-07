@@ -1,4 +1,4 @@
-import { ReactNode, useState, useRef } from 'react';
+import { ReactNode, useState, useRef, ChangeEvent } from 'react';
 import axios from 'axios';
 import './app.css';
 
@@ -13,6 +13,7 @@ function App() {
   // application variables
   const applications = ["azure", "jenkins", "jira"]
   const [application, setApplication] = useState('')
+  const [project, setProject] = useState('')
   const [conversation, setConversation] = useState<ConversationType[]>([])
   const [text, setText] = useState('')
   const [jira, setJira] = useState({
@@ -79,16 +80,19 @@ function App() {
       `http://localhost:8000/getJiraProjects`)
       // .then(res => console.log(res.data.data))
       .then(res => setJira({
-        ...jira, projects: res.data.data.map((pro: { name: string }) => pro.name).sort()
-      }))
+        ...jira, projects: res.data.data.map((pro: { name: string }) => pro.name)
+      })
+      )
   };
 
   const getAzureProjects = async () => {
     await axios.get(
       `http://localhost:8000/getAzureProjects`)
+      // .then(res => console.log(res.data.data))
       .then(res => setAzure({
-        ...azure, projects: res.data.data.value.map((pro: { name: string }) => pro.name).sort()
-      }))
+        ...azure, projects: res.data.data.value.map((pro: { name: string }) => pro.name)
+      })
+      )
   };
 
   const createIssueInAzure = async (title: string, desc: string) => {
@@ -136,6 +140,111 @@ function App() {
       });
   }
 
+  // handle application selection
+  const handleApplicationSelection = (e: ChangeEvent<HTMLSelectElement>) => {
+    const option = e.target.value
+    if (option === application) return
+    if (option === "") {
+      setAzure({
+        projects: [],
+        project: "",
+        issue: {
+          title: "",
+          description: ""
+        },
+      })
+      setJira({
+        projects: [],
+        project: "",
+      })
+    }
+    if (option === "azure") {
+      setJira({ projects: [], project: "" })
+      getAzureProjects()
+    }
+    if (option === "jira") {
+      setAzure({ projects: [], project: "", issue: { title: "", description: "" } })
+      getJiraProjects()
+    }
+    setApplication(option)
+  }
+
+  // handle project selection
+  const handleProjectSelection = (e: ChangeEvent<HTMLSelectElement>) => {
+    const option = e.target.value
+    setProject(option)
+    if (option === azure.project || option === jira.project || !option.length) return
+    if (application === "azure") {
+      setAzure({ ...azure, project: option })
+    } else if (application === "jira") {
+      setJira({ ...jira, project: option })
+    }
+    if (application === "azure") {
+      setConversation([...conversation, {
+        message: <div>
+          <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
+          <br></br>
+          <div>{` - create an issue?`}</div>
+        </div>,
+        user: "system",
+        keyword: "azure activity"
+      }])
+    } else if (application === "jira") {
+      setConversation([...conversation, {
+        message: <div>
+          <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
+          <br></br>
+          <div>{` - create an issue?`}</div>
+        </div>,
+        user: "system",
+        keyword: "jira activity"
+      }])
+    }
+    setTimeout(() => scrollToBottom(), 1)
+  }
+
+  // handle send click
+  const handleSendClick = () => {
+    if (application === "azure" &&
+      conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword === "azure activity" &&
+      text.includes("issue")) {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "create issue" },
+      { message: <div>{`please provide an issue title`}</div>, user: "system", keyword: "issue title" }
+      ])
+    }
+    else if (application === "azure" &&
+      conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword === "issue title") {
+      setAzure({ ...azure, issue: { ...azure.issue, title: text } })
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "issue title" },
+      { message: <div>{`please enter issue description`}</div>, user: "system", keyword: "issue description" }
+      ])
+    }
+    else if (application === "azure" &&
+      conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword === "issue description") {
+      setAzure({ ...azure, issue: { ...azure.issue, description: text } })
+      createIssueInAzure(azure.issue.title, text)
+    } else {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },
+      {
+        message: <div>
+          <div>{`sorry, you will have to choose one of the option below in ${azure.project.toUpperCase()}`}</div>
+          <br></br>
+          <div>{` - create an issue?`}</div>
+        </div>,
+        user: "system",
+        keyword: "azure activity"
+      }])
+    }
+    setText("")
+    setTimeout(() => scrollToBottom(), 1)
+  }
+
   // JSX code
   return (
     <div className="app">
@@ -165,34 +274,7 @@ function App() {
             <select
               className="application"
               value={application}
-              // application on change
-              onChange={(e) => {
-                const option = e.target.value
-                if (option === application) return
-                if (option === "") {
-                  setAzure({
-                    projects: [],
-                    project: "",
-                    issue: {
-                      title: "",
-                      description: ""
-                    },
-                  })
-                  setJira({
-                    projects: [],
-                    project: "",
-                  })
-                }
-                if (option === "azure") {
-                  setJira({ projects: [], project: "" })
-                  getAzureProjects()
-                }
-                if (option === "jira") {
-                  setAzure({ projects: [], project: "", issue: { title: "", description: "" } })
-                  getJiraProjects()
-                }
-                setApplication(option)
-              }}>
+              onChange={(e) => handleApplicationSelection(e)}>
               <option value="">application</option>
               {applications.map((app, i) =>
                 <option key={i} value={app}>{app}</option>
@@ -202,46 +284,16 @@ function App() {
             {(application === "azure" && azure.projects.length) ||
               (application === "jira" && jira.projects.length) ? <select
                 className="project"
-                value={azure.project || jira.project}
-                // project on change
-                onChange={(e) => {
-                  const option = e.target.value
-                  if (option === azure.project || option === jira.project) return
-                  if (option === "azure") {
-                    setAzure({ ...azure, project: option })
-                  } else if (option === "jira") {
-                    setJira({ ...jira, project: option })
-                  }
-                  if (option.length) {
-                    if (application === "azure") {
-                      setConversation([...conversation, {
-                        message: <div>
-                          <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
-                          <br></br>
-                          <div>{` - create an issue?`}</div>
-                        </div>,
-                        user: "system",
-                        keyword: "azure activity"
-                      }])
-                    } else if (application === "jira") {
-                      setConversation([...conversation, {
-                        message: <div>
-                          <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
-                          <br></br>
-                          <div>{` - create an issue?`}</div>
-                        </div>,
-                        user: "system",
-                        keyword: "jira activity"
-                      }])
-                    }
-                  }
-                }}
+                value={project}
+                onChange={(e) => handleProjectSelection(e)}
               >
               <option value="">projects</option>
               {azure.projects.length ?
-                azure.projects.map((pro, i) => <option key={i} value={pro}>{pro}</option>) :
+                azure.projects.map((pro, i) =>
+                  <option key={i} value={pro}>{pro}</option>) :
                 jira.projects.length ?
-                  jira.projects.map((pro, i) => <option key={i} value={pro}>{pro}</option>) :
+                  jira.projects.map((pro, i) =>
+                    <option key={i} value={pro}>{pro}</option>) :
                   ""
               }
             </select> : ""}
@@ -258,51 +310,13 @@ function App() {
               type="text"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              disabled={application === "azure" && azure.project.length ? false : true}
+              disabled={azure.project.length || jira.project.length ?
+                false : true}
             />
             {/* send button */}
             <button
-              onClick={() => {
-                if (application === "azure" &&
-                  conversation[conversation.length - 1].user === "system" &&
-                  conversation[conversation.length - 1].keyword === "azure activity" &&
-                  text.includes("issue")) {
-                  setConversation([...conversation,
-                  { message: <div>{text}</div>, user: "user", keyword: "create issue" },
-                  { message: <div>{`please provide an issue title`}</div>, user: "system", keyword: "issue title" }
-                  ])
-                }
-                else if (application === "azure" &&
-                  conversation[conversation.length - 1].user === "system" &&
-                  conversation[conversation.length - 1].keyword === "issue title") {
-                  setAzure({ ...azure, issue: { ...azure.issue, title: text } })
-                  setConversation([...conversation,
-                  { message: <div>{text}</div>, user: "user", keyword: "issue title" },
-                  { message: <div>{`please enter issue description`}</div>, user: "system", keyword: "issue description" }
-                  ])
-                }
-                else if (application === "azure" &&
-                  conversation[conversation.length - 1].user === "system" &&
-                  conversation[conversation.length - 1].keyword === "issue description") {
-                  setAzure({ ...azure, issue: { ...azure.issue, description: text } })
-                  createIssueInAzure(azure.issue.title, text)
-                } else {
-                  setConversation([...conversation,
-                  { message: <div>{text}</div>, user: "user", keyword: "" },
-                  {
-                    message: <div>
-                      <div>{`sorry, you will have to choose one of the option below in ${azure.project.toUpperCase()}`}</div>
-                      <br></br>
-                      <div>{` - create an issue?`}</div>
-                    </div>,
-                    user: "system",
-                    keyword: "azure activity"
-                  }])
-                }
-                setText("")
-                setTimeout(() => scrollToBottom(), 1)
-              }}
-              disabled={application.length && text.length ? false : true}
+              onClick={() => handleSendClick()}
+              disabled={(azure.project.length || jira.project.length) && text.length ? false : true}
             >Send</button>
           </div>
         </div>
