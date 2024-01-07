@@ -120,9 +120,18 @@ function App() {
     <div className="app">
       <div className="head">CHATBOT</div>
       {/* display messages */}
-      <div className="display">{conversation.map((c: { message: ReactNode }, i) =>
-        <div className="message" key={i}>{c.message}</div>
-      )}
+      <div className="display">
+        <div className="messages">
+          {conversation.map((c: { message: ReactNode, user: string }, i) =>
+            <div className="message-wrapper">
+              <div
+                className="message"
+                style={{ float: c.user === "system" ? "left" : "right" }}
+                key={i}>{c.message}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       <div className="input">
         <div className="user-input">
@@ -135,6 +144,14 @@ function App() {
               onChange={(e) => {
                 const option = e.target.value
                 if (option === application) return
+                if (option === "") setAzure({
+                  projects: [],
+                  project: "",
+                  issue: {
+                    title: "",
+                    description: ""
+                  },
+                })
                 if (option === "azure") getAzureProjects()
                 setApplication(option)
               }}>
@@ -144,7 +161,7 @@ function App() {
               )}
             </select>
             {/* select projects */}
-            {application === "azure" ? <select
+            {application === "azure" && azure.projects.length ? <select
               className="project"
               value={azure.project}
               // project on change
@@ -194,7 +211,8 @@ function App() {
           onClick={() => {
             if (application === "azure" &&
               conversation[conversation.length - 1].user === "system" &&
-              conversation[conversation.length - 1].keyword === "azure activity") {
+              conversation[conversation.length - 1].keyword === "azure activity" &&
+              text.includes("issue")) {
               setConversation([...conversation,
               { message: <div>{text}</div>, user: "user", keyword: "create issue" },
               { message: <div>{`please provide an issue title`}</div>, user: "system", keyword: "issue title" }
@@ -217,10 +235,18 @@ function App() {
               { message: <div>{text}</div>, user: "user", keyword: "issue description" },
               ])
               createIssueInAzure(azure.issue.title, text)
-            } else if (application === "azure" &&
-              conversation[conversation.length - 1].user === "system" &&
-              conversation[conversation.length - 1].keyword === "completed") {
-
+            } else {
+              setConversation([...conversation,
+              { message: <div>{text}</div>, user: "user", keyword: "" },
+              {
+                message: <div>
+                  <div>{`sorry, you will have to choose one of the option below in ${azure.project.toUpperCase()}`}</div>
+                  <br></br>
+                  <div>{` - create an issue?`}</div>
+                </div>,
+                user: "system",
+                keyword: "azure activity"
+              }])
             }
             setText("")
           }}
