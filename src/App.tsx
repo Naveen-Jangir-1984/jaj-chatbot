@@ -80,7 +80,12 @@ function App() {
       `http://localhost:8000/getJiraProjects`)
       // .then(res => console.log(res.data.data))
       .then(res => setJira({
-        ...jira, projects: res.data.data.map((pro: { name: string }) => pro.name)
+        ...jira, projects: res.data.data.map((pro: { key: string, name: string }) => {
+          return {
+            id: pro.key,
+            name: pro.name
+          }
+        })
       })
       )
   };
@@ -90,7 +95,12 @@ function App() {
       `http://localhost:8000/getAzureProjects`)
       // .then(res => console.log(res.data.data))
       .then(res => setAzure({
-        ...azure, projects: res.data.data.value.map((pro: { name: string }) => pro.name)
+        ...azure, projects: res.data.data.value.map((pro: { id: string, name: string }) => {
+          return {
+            id: pro.id,
+            name: pro.name
+          }
+        })
       })
       )
   };
@@ -289,11 +299,11 @@ function App() {
               >
               <option value="">projects</option>
               {azure.projects.length ?
-                azure.projects.map((pro, i) =>
-                  <option key={i} value={pro}>{pro}</option>) :
+                azure.projects.map((pro: { id: string, name: string }, i) =>
+                  <option key={i} value={pro.name}>{pro.name}</option>) :
                 jira.projects.length ?
-                  jira.projects.map((pro, i) =>
-                    <option key={i} value={pro}>{pro}</option>) :
+                  jira.projects.map((pro: { id: string, name: string }, i) =>
+                    <option key={i} value={pro.name}>{pro.name}</option>) :
                   ""
               }
             </select> : ""}
