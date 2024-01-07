@@ -48,9 +48,8 @@
 
 .message {
   margin-bottom: 5px;
-  padding: 5px 10px;
+  padding: 5px 15px;
   border-radius: 5px;
-  background-color: white;
   box-sizing: border-box;
 }
 
@@ -65,7 +64,7 @@
 }
 
 .user-input {
-  width: calc(100% - 115px);
+  width: 100%;
   height: 95%;
   display: flex;
   flex-direction: column;
@@ -74,7 +73,7 @@
   box-sizing: border-box;
 }
 
-.applications {
+.filters {
   width: 100%;
   height: 25px;
   display: flex;
@@ -91,6 +90,14 @@
   align-items: center;
 }
 
+.user-control {
+  width: 100%;
+  height: calc(100% - 35px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 input[type=date] {
   width: 100px;
   height: 90%;
@@ -102,7 +109,7 @@ input[type=date] {
 
 input[type=text] {
   padding: 0 10px;
-  width: 100%;
+  width: 80%;
   height: 60px;
   border: none;
   box-shadow: 0 0 1px 0 black;
@@ -112,7 +119,7 @@ input[type=text] {
 }
 
 .input button {
-  width: 100px;
+  width: 15%;
   height: 100%;
 }
 

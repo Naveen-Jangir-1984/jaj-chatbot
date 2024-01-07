@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useRef } from 'react';
 import axios from 'axios';
 import './app.css';
 
@@ -31,6 +31,13 @@ function App() {
   })
 
   // applications functions
+  const msg = useRef<any>(null);
+  const scrollToBottom = () => {
+    if (msg.current) {
+      msg.current.scrollIntoView({ behaviour: "smooth" });
+    }
+  };
+
   // const trigger = async (job: string) => {
   //   if (application !== "jenkins") return
   //   await axios.post(`http://localhost:8000/triggerjob`, { jobname: job, })
@@ -101,10 +108,16 @@ function App() {
       `http://localhost:8000/createAzureIssue`, { project: azure.project, issue: issue })
       .then(res => {
         setConversation([...conversation, {
+          message: <div>{text}</div>,
+          user: "user",
+          keyword: "azure activity"
+        },
+        {
           message: <div>
             <div style={{ fontWeight: "bold" }}>Issue #{res.data.data.id} has been succesfully created!</div>
             <br></br>
             <div>{`which below activities you wish to perform in ${azure.project.toUpperCase()}?`}</div>
+            <br></br>
             <div>{` - create an issue?`}</div>
           </div>,
           user: "system",
@@ -112,6 +125,7 @@ function App() {
         }
         ])
         setAzure({ ...azure, issue: { title: "", description: "" } })
+        setTimeout(() => scrollToBottom(), 1)
       });
   }
 
@@ -126,16 +140,20 @@ function App() {
             <div className="message-wrapper">
               <div
                 className="message"
-                style={{ float: c.user === "system" ? "left" : "right" }}
+                style={{
+                  float: c.user === "system" ? "left" : "right",
+                  backgroundColor: c.user === "system" ? "#ddd" : "#dde"
+                }}
                 key={i}>{c.message}
               </div>
             </div>
           )}
+          <div ref={msg} />
         </div>
       </div>
       <div className="input">
         <div className="user-input">
-          <div className="applications">
+          <div className="filters">
             {/* select application */}
             <select
               className="application"
@@ -198,60 +216,60 @@ function App() {
               <input type="date" disabled={application.length ? false : true} />
             </div> */}
           </div>
-          {/* user input on console */}
-          <input
-            type="text"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            disabled={application === "azure" && azure.project.length ? false : true}
-          />
+          <div className="user-control">
+            {/* user input on console */}
+            <input
+              type="text"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              disabled={application === "azure" && azure.project.length ? false : true}
+            />
+            {/* send button */}
+            <button
+              onClick={() => {
+                if (application === "azure" &&
+                  conversation[conversation.length - 1].user === "system" &&
+                  conversation[conversation.length - 1].keyword === "azure activity" &&
+                  text.includes("issue")) {
+                  setConversation([...conversation,
+                  { message: <div>{text}</div>, user: "user", keyword: "create issue" },
+                  { message: <div>{`please provide an issue title`}</div>, user: "system", keyword: "issue title" }
+                  ])
+                }
+                else if (application === "azure" &&
+                  conversation[conversation.length - 1].user === "system" &&
+                  conversation[conversation.length - 1].keyword === "issue title") {
+                  setAzure({ ...azure, issue: { ...azure.issue, title: text } })
+                  setConversation([...conversation,
+                  { message: <div>{text}</div>, user: "user", keyword: "issue title" },
+                  { message: <div>{`please enter issue description`}</div>, user: "system", keyword: "issue description" }
+                  ])
+                }
+                else if (application === "azure" &&
+                  conversation[conversation.length - 1].user === "system" &&
+                  conversation[conversation.length - 1].keyword === "issue description") {
+                  setAzure({ ...azure, issue: { ...azure.issue, description: text } })
+                  createIssueInAzure(azure.issue.title, text)
+                } else {
+                  setConversation([...conversation,
+                  { message: <div>{text}</div>, user: "user", keyword: "" },
+                  {
+                    message: <div>
+                      <div>{`sorry, you will have to choose one of the option below in ${azure.project.toUpperCase()}`}</div>
+                      <br></br>
+                      <div>{` - create an issue?`}</div>
+                    </div>,
+                    user: "system",
+                    keyword: "azure activity"
+                  }])
+                }
+                setText("")
+                setTimeout(() => scrollToBottom(), 1)
+              }}
+              disabled={application.length && text.length ? false : true}
+            >Send</button>
+          </div>
         </div>
-        {/* send button */}
-        <button
-          onClick={() => {
-            if (application === "azure" &&
-              conversation[conversation.length - 1].user === "system" &&
-              conversation[conversation.length - 1].keyword === "azure activity" &&
-              text.includes("issue")) {
-              setConversation([...conversation,
-              { message: <div>{text}</div>, user: "user", keyword: "create issue" },
-              { message: <div>{`please provide an issue title`}</div>, user: "system", keyword: "issue title" }
-              ])
-            }
-            else if (application === "azure" &&
-              conversation[conversation.length - 1].user === "system" &&
-              conversation[conversation.length - 1].keyword === "issue title") {
-              setAzure({ ...azure, issue: { ...azure.issue, title: text } })
-              setConversation([...conversation,
-              { message: <div>{text}</div>, user: "user", keyword: "issue title" },
-              { message: <div>{`please enter issue description`}</div>, user: "system", keyword: "issue description" }
-              ])
-            }
-            else if (application === "azure" &&
-              conversation[conversation.length - 1].user === "system" &&
-              conversation[conversation.length - 1].keyword === "issue description") {
-              setAzure({ ...azure, issue: { ...azure.issue, description: text } })
-              setConversation([...conversation,
-              { message: <div>{text}</div>, user: "user", keyword: "issue description" },
-              ])
-              createIssueInAzure(azure.issue.title, text)
-            } else {
-              setConversation([...conversation,
-              { message: <div>{text}</div>, user: "user", keyword: "" },
-              {
-                message: <div>
-                  <div>{`sorry, you will have to choose one of the option below in ${azure.project.toUpperCase()}`}</div>
-                  <br></br>
-                  <div>{` - create an issue?`}</div>
-                </div>,
-                user: "system",
-                keyword: "azure activity"
-              }])
-            }
-            setText("")
-          }}
-          disabled={application.length && text.length ? false : true}
-        >Send</button>
       </div>
       <div className="foot">CHATBOT</div>
     </div>
