@@ -85,8 +85,25 @@ app.post('/getbuilds', async (req, res) => {
 })
 
 //JIRA ---------------------------------------------------------------
+const jiraURL = process.env.JIRA_URL;
 const jiraEmail = process.env.JIRA_EMAIL;
 const jiraAPIToken = process.env.JIRA_API_TOKEN
+
+app.get('/getJiraProjects', async (req, res) => {
+  const jiraCredentials = `${jiraEmail}:${jiraAPIToken}`
+  const base64Credentials = btoa(jiraCredentials);
+  let data;
+
+  await axios.get(
+    `${jiraURL}/rest/api/2/project`,
+    {
+      headers: {
+        Authorization: `Basic ${base64Credentials}`,
+      },
+    }
+  ).then(res => data = res.data);
+  res.json({ data })
+})
 
 app.post('/createJiraIssue', async (req, res) => {
   const issue = req.body.issue
@@ -95,7 +112,7 @@ app.post('/createJiraIssue', async (req, res) => {
   let data;
 
   await axios.post(
-    'https://cognizant-testplattform.atlassian.net/rest/api/2/issue',
+    `${jiraURL}/rest/api/2/issue`,
     issue,
     {
       headers: {

@@ -15,12 +15,10 @@ function App() {
   const [application, setApplication] = useState('')
   const [conversation, setConversation] = useState<ConversationType[]>([])
   const [text, setText] = useState('')
-  // const [jenkins, setJenkins] = useState({
-  //   job: "",
-  //   jobs: [],
-  //   build: [],
-  //   builds: []
-  // })
+  const [jira, setJira] = useState({
+    projects: [],
+    project: "",
+  })
   const [azure, setAzure] = useState({
     projects: [],
     project: "",
@@ -76,11 +74,20 @@ function App() {
   //     .then(res => console.log(res.data));
   // }
 
+  const getJiraProjects = async () => {
+    await axios.get(
+      `http://localhost:8000/getJiraProjects`)
+      // .then(res => console.log(res.data.data))
+      .then(res => setJira({
+        ...jira, projects: res.data.data.map((pro: { name: string }) => pro.name).sort()
+      }))
+  };
+
   const getAzureProjects = async () => {
     await axios.get(
       `http://localhost:8000/getAzureProjects`)
       .then(res => setAzure({
-        ...azure, projects: res.data.data.value.map((pro: { name: string }) => pro.name)
+        ...azure, projects: res.data.data.value.map((pro: { name: string }) => pro.name).sort()
       }))
   };
 
@@ -137,14 +144,14 @@ function App() {
       <div className="display">
         <div className="messages">
           {conversation.map((c: { message: ReactNode, user: string }, i) =>
-            <div className="message-wrapper">
+            <div className="message-wrapper" key={i}>
               <div
                 className="message"
                 style={{
                   float: c.user === "system" ? "left" : "right",
                   backgroundColor: c.user === "system" ? "#ddd" : "#dde"
                 }}
-                key={i}>{c.message}
+              >{c.message}
               </div>
             </div>
           )}
@@ -162,15 +169,28 @@ function App() {
               onChange={(e) => {
                 const option = e.target.value
                 if (option === application) return
-                if (option === "") setAzure({
-                  projects: [],
-                  project: "",
-                  issue: {
-                    title: "",
-                    description: ""
-                  },
-                })
-                if (option === "azure") getAzureProjects()
+                if (option === "") {
+                  setAzure({
+                    projects: [],
+                    project: "",
+                    issue: {
+                      title: "",
+                      description: ""
+                    },
+                  })
+                  setJira({
+                    projects: [],
+                    project: "",
+                  })
+                }
+                if (option === "azure") {
+                  setJira({ projects: [], project: "" })
+                  getAzureProjects()
+                }
+                if (option === "jira") {
+                  setAzure({ projects: [], project: "", issue: { title: "", description: "" } })
+                  getJiraProjects()
+                }
                 setApplication(option)
               }}>
               <option value="">application</option>
@@ -179,17 +199,21 @@ function App() {
               )}
             </select>
             {/* select projects */}
-            {application === "azure" && azure.projects.length ? <select
-              className="project"
-              value={azure.project}
-              // project on change
-              onChange={(e) => {
-                const option = e.target.value
-                if (option === azure.project) return
-                setAzure({ ...azure, project: option })
-                if (option.length) {
-                  switch (application) {
-                    case "azure":
+            {(application === "azure" && azure.projects.length) ||
+              (application === "jira" && jira.projects.length) ? <select
+                className="project"
+                value={azure.project || jira.project}
+                // project on change
+                onChange={(e) => {
+                  const option = e.target.value
+                  if (option === azure.project || option === jira.project) return
+                  if (option === "azure") {
+                    setAzure({ ...azure, project: option })
+                  } else if (option === "jira") {
+                    setJira({ ...jira, project: option })
+                  }
+                  if (option.length) {
+                    if (application === "azure") {
                       setConversation([...conversation, {
                         message: <div>
                           <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
@@ -199,15 +223,27 @@ function App() {
                         user: "system",
                         keyword: "azure activity"
                       }])
-                      break;
-                    default:
-                      break;
+                    } else if (application === "jira") {
+                      setConversation([...conversation, {
+                        message: <div>
+                          <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
+                          <br></br>
+                          <div>{` - create an issue?`}</div>
+                        </div>,
+                        user: "system",
+                        keyword: "jira activity"
+                      }])
+                    }
                   }
-                }
-              }}
-            >
+                }}
+              >
               <option value="">projects</option>
-              {azure.projects.map((pro, i) => <option key={i} value={pro}>{pro}</option>)}
+              {azure.projects.length ?
+                azure.projects.map((pro, i) => <option key={i} value={pro}>{pro}</option>) :
+                jira.projects.length ?
+                  jira.projects.map((pro, i) => <option key={i} value={pro}>{pro}</option>) :
+                  ""
+              }
             </select> : ""}
             {/* <div className="dates">
               <label>FROM</label>
