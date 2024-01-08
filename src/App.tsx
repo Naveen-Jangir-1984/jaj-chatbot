@@ -192,7 +192,7 @@ function App() {
     if (application === "azure") {
       setConversation([...conversation, {
         message: <div>
-          <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
+          <div>which below activities you wish to perform in <b>{option.toUpperCase()}</b></div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -202,7 +202,7 @@ function App() {
     } else if (application === "jira") {
       setConversation([...conversation, {
         message: <div>
-          <div>{`which below activities you wish to perform in ${option.toUpperCase()}?`}</div>
+          <div>which below activities you wish to perform in <b>{option.toUpperCase()}</b></div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
