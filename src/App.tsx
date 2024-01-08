@@ -128,7 +128,7 @@ function App() {
     await axios.post(
       `http://localhost:8000/createAzureIssue`, { project: azure.project, issue: issue })
       .then(res => {
-        setConversation([...conversation, {
+        setTimeout(() => setConversation([...conversation, {
           message: <div>{text}</div>,
           user: "user",
           keyword: "azure activity"
@@ -144,9 +144,9 @@ function App() {
           user: "system",
           keyword: "azure activity"
         }
-        ])
+        ]), 1000)
         setAzure({ ...azure, issue: { title: "", description: "" } })
-        setTimeout(() => scrollToBottom(), 1)
+        setTimeout(() => scrollToBottom(), 1500)
       });
   }
 
@@ -215,31 +215,43 @@ function App() {
 
   // handle send click
   const handleSendClick = () => {
+    setTimeout(() => scrollToBottom(), 1)
     if (application === "azure" &&
       conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "azure activity" &&
       text.includes("issue")) {
       setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "create issue" },])
+      setTimeout(() => setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "create issue" },
       { message: <div>{`please provide an issue title`}</div>, user: "system", keyword: "issue title" }
-      ])
+      ]), 1000)
     }
     else if (application === "azure" &&
       conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "issue title") {
       setAzure({ ...azure, issue: { ...azure.issue, title: text } })
       setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "issue title" },])
+      setTimeout(() => setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "issue title" },
       { message: <div>{`please enter issue description`}</div>, user: "system", keyword: "issue description" }
-      ])
+      ]), 1000)
     }
     else if (application === "azure" &&
       conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "issue description") {
       setAzure({ ...azure, issue: { ...azure.issue, description: text } })
+      setConversation([...conversation, {
+        message: <div>{text}</div>,
+        user: "user",
+        keyword: "azure activity"
+      },])
       createIssueInAzure(azure.issue.title, text)
-    } else {
+    } else if (application === "azure") {
       setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },])
+      setTimeout(() => setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "" },
       {
         message: <div>
@@ -249,10 +261,10 @@ function App() {
         </div>,
         user: "system",
         keyword: "azure activity"
-      }])
+      }]), 1000)
     }
     setText("")
-    setTimeout(() => scrollToBottom(), 1)
+    setTimeout(() => scrollToBottom(), 1500)
   }
 
   // JSX code
