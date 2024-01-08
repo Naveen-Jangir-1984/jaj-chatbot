@@ -50,6 +50,7 @@
   margin: 0 10px 10px 5px;
   padding: 10px 20px;
   border-radius: 5px;
+  box-shadow: 3px 3px 5px 0 lightgrey;
   box-sizing: border-box;
 }
 

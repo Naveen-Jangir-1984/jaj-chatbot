@@ -135,7 +135,7 @@ function App() {
         },
         {
           message: <div>
-            <div style={{ fontWeight: "bold" }}>Issue #{res.data.data.id} has been succesfully created!</div>
+            <div><b>Issue #{res.data.data.id} has been succesfully created!</b></div>
             <br></br>
             <div>{`which below activities you wish to perform in ${azure.project.toUpperCase()}?`}</div>
             <br></br>
@@ -255,7 +255,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "" },
       {
         message: <div>
-          <div>{`sorry, you will have to choose one of the option below in ${azure.project.toUpperCase()}`}</div>
+          <div>sorry, you will have to choose one of the option below in <b>{azure.project.toUpperCase()}</b></div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -270,7 +270,7 @@ function App() {
   // JSX code
   return (
     <div className="app">
-      <div className="head">CHATBOT</div>
+      <div className="head">HEADER</div>
       {/* display messages */}
       <div className="display">
         <div className="messages">
@@ -280,7 +280,7 @@ function App() {
                 className="message"
                 style={{
                   float: c.user === "system" ? "left" : "right",
-                  backgroundColor: c.user === "system" ? "#ddd" : "#dde"
+                  backgroundColor: c.user === "system" ? "#def" : "#bfb"
                 }}
               >{c.message}
               </div>
@@ -343,7 +343,7 @@ function App() {
           </div>
         </div>
       </div>
-      <div className="foot">CHATBOT</div>
+      <div className="foot">FOOTER</div>
     </div>
   );
 }
