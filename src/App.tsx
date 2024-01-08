@@ -183,6 +183,10 @@ function App() {
   const handleProjectSelection = (e: ChangeEvent<HTMLSelectElement>) => {
     const option = e.target.value
     setProject(option)
+    if (!option.length) {
+      setAzure({ ...azure, project: "" })
+      setJira({ ...jira, project: "" })
+    }
     if (option === azure.project || option === jira.project || !option.length) return
     if (application === "azure") {
       setAzure({ ...azure, project: option })
