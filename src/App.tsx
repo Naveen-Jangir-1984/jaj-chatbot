@@ -280,7 +280,7 @@ function App() {
                 className="message"
                 style={{
                   float: c.user === "system" ? "left" : "right",
-                  backgroundColor: c.user === "system" ? "#def" : "#bfb"
+                  backgroundColor: c.user === "system" ? "#def" : "#ddd"
                 }}
               >{c.message}
               </div>
