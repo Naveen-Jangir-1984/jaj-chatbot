@@ -47,8 +47,8 @@
 }
 
 .message {
-  margin-bottom: 5px;
-  padding: 10px 15px;
+  margin: 0 10px 10px 5px;
+  padding: 10px 20px;
   border-radius: 5px;
   box-sizing: border-box;
 }
