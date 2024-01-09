@@ -133,6 +133,13 @@ select {
   border-radius: 5px;
 }
 
+h4 {
+  background-color: white;
+  border-radius: 5px;
+  padding: 10px 20px;
+  box-shadow: 2px 2px 5px 0 lightgrey;
+}
+
 /* width */
 ::-webkit-scrollbar {
   width: 1px;

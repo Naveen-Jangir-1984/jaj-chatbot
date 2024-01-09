@@ -156,7 +156,6 @@ function App() {
     }
   }
 
-
   // handle jira related methods
   const getJiraProjects = async () => {
     await axios.get(
@@ -477,8 +476,12 @@ function App() {
       <div className="head">HEADER</div>
       {/* display messages */}
       <div className="display">
-        <div className="messages">
-          {conversation.map((c: { message: ReactNode, user: string }, i) =>
+        <div className="messages"
+          style={{
+            justifyContent: conversation.length ? "" : "center",
+            alignItems: conversation.length ? "" : "center",
+          }}>
+          {conversation.length ? conversation.map((c: { message: ReactNode, user: string }, i) =>
             <div className="message-wrapper" key={i}>
               <div
                 className="message"
@@ -489,7 +492,7 @@ function App() {
               >{c.message}
               </div>
             </div>
-          )}
+          ) : <h4>please select an application followed by project/job to interact with chatbot</h4>}
           <div ref={msg} />
         </div>
       </div>
