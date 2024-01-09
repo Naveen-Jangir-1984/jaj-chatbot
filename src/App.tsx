@@ -16,12 +16,18 @@ function App() {
   const [project, setProject] = useState('')
   const [conversation, setConversation] = useState<ConversationType[]>([])
   const [text, setText] = useState('')
-  const [jira, setJira] = useState({
+  const [azure, setAzure] = useState({
     projects: [],
     project: "",
     issue: { title: "", description: "" }
   })
-  const [azure, setAzure] = useState({
+  const [jenkins, setJenkins] = useState({
+    jobs: [],
+    job: "",
+    builds: [],
+    build: "",
+  })
+  const [jira, setJira] = useState({
     projects: [],
     project: "",
     issue: { title: "", description: "" }
@@ -33,79 +39,6 @@ function App() {
     if (msg.current) {
       msg.current.scrollIntoView({ behaviour: "smooth" });
     }
-  };
-
-  // const trigger = async (job: string) => {
-  //   if (application !== "jenkins") return
-  //   await axios.post(`http://localhost:8000/triggerjob`, { jobname: job, })
-  //     .then((res) => console.log(res.data.msg));
-  // }
-
-  // const getJobs = async () => {
-  //   if (application !== "jenkins") return
-  //   await axios.get(`http://localhost:8000/getjobs`)
-  //     .then((res) => setJenkins({ ...jenkins, jobs: res.data.jobs }))
-  // }
-
-  // const getBuilds = async (jobname: string) => {
-  //   if (application !== "jenkins") return
-  //   await axios.post(`http://localhost:8000/getbuilds`, { jobname: jobname, })
-  //     .then((res) => { setJenkins({ ...jenkins, builds: res.data.builds }) })
-  // }
-
-  // handle jira related methods
-  const createIssueInJira = async () => {
-    const pro: { id: string, name: string }[] = jira.projects.filter((p: { name: string }) => p.name === jira.project)
-    const issue = {
-      fields: {
-        project: {
-          key: pro[0].id
-        },
-        summary: jira.issue.title,
-        description: jira.issue.description,
-        issuetype: {
-          name: 'Story',
-        },
-      },
-    };
-
-    await axios.post(
-      `http://localhost:8000/createJiraIssue`, { issue: issue })
-      // .then(res => console.log(res.data));
-      .then(res => {
-        setTimeout(() => setConversation([...conversation, {
-          message: <div>{text}</div>,
-          user: "user",
-          keyword: "jira activity"
-        },
-        {
-          message: <div>
-            <div><b>Issue #{res.data.data.id} has been succesfully created!</b></div>
-            <br></br>
-            <div>which below activities you wish to perform on <b>{jira.project.toUpperCase()}</b> project?</div>
-            <br></br>
-            <div>{` - create an issue?`}</div>
-          </div>,
-          user: "system",
-          keyword: "jira activity"
-        }
-        ]), 1000)
-        setJira({ ...jira, issue: { title: "", description: "" } })
-        setTimeout(() => scrollToBottom(), 1500)
-      });
-  }
-  const getJiraProjects = async () => {
-    await axios.get(
-      `http://localhost:8000/getJiraProjects`)
-      .then(res => setJira({
-        ...jira, projects: res.data.data.map((pro: { key: string, name: string }) => {
-          return {
-            id: pro.key,
-            name: pro.name
-          }
-        })
-      })
-      )
   };
 
   // handle azure related methods
@@ -154,7 +87,7 @@ function App() {
           message: <div>
             <div><b>Issue #{res.data.data.id} has been succesfully created!</b></div>
             <br></br>
-            <div>which below activities you wish to perform on <b>{azure.project.toUpperCase()}</b> project?</div>
+            <div>which below activity you wish to perform on <b>{azure.project.toUpperCase()}</b> project?</div>
             <br></br>
             <div>{` - create an issue?`}</div>
           </div>,
@@ -167,37 +100,109 @@ function App() {
       });
   }
 
+  const getJenkinsJobs = async () => {
+    await axios.get(`http://localhost:8000/getjobs`)
+      // .then(res => console.log(res.data.jobs))
+      .then(res => setJenkins({
+        ...jenkins, jobs: res.data.jobs.map((pro: { name: string }) => pro.name)
+      })
+      )
+  }
+
+  // const getJenkinsBuilds = async (jobname: string) => {
+  //   if (application !== "jenkins") return
+  //   await axios.post(`http://localhost:8000/getbuilds`, { jobname: jobname, })
+  //     .then((res) => { setJenkins({ ...jenkins, builds: res.data.builds }) })
+  // }
+
+  // const trigger = async (job: string) => {
+  //   if (application !== "jenkins") return
+  //   await axios.post(`http://localhost:8000/triggerjob`, { jobname: job, })
+  //     .then((res) => console.log(res.data.msg));
+  // }
+
+  // handle jira related methods
+  const getJiraProjects = async () => {
+    await axios.get(
+      `http://localhost:8000/getJiraProjects`)
+      .then(res => setJira({
+        ...jira, projects: res.data.data.map((pro: { key: string, name: string }) => {
+          return {
+            id: pro.key,
+            name: pro.name
+          }
+        })
+      })
+      )
+  };
+  const createIssueInJira = async () => {
+    const pro: { id: string, name: string }[] = jira.projects.filter((p: { name: string }) => p.name === jira.project)
+    const issue = {
+      fields: {
+        project: {
+          key: pro[0].id
+        },
+        summary: jira.issue.title,
+        description: jira.issue.description,
+        issuetype: {
+          name: 'Story',
+        },
+      },
+    };
+
+    await axios.post(
+      `http://localhost:8000/createJiraIssue`, { issue: issue })
+      // .then(res => console.log(res.data));
+      .then(res => {
+        setTimeout(() => setConversation([...conversation, {
+          message: <div>{text}</div>,
+          user: "user",
+          keyword: "jira activity"
+        },
+        {
+          message: <div>
+            <div><b>Issue #{res.data.data.id} has been succesfully created!</b></div>
+            <br></br>
+            <div>which below activity you wish to perform on <b>{jira.project.toUpperCase()}</b> project?</div>
+            <br></br>
+            <div>{` - create an issue?`}</div>
+          </div>,
+          user: "system",
+          keyword: "jira activity"
+        }
+        ]), 1000)
+        setJira({ ...jira, issue: { title: "", description: "" } })
+        setTimeout(() => scrollToBottom(), 1500)
+      });
+  }
+
   // handle application selection
   const handleApplicationSelection = (e: ChangeEvent<HTMLSelectElement>) => {
     const option = e.target.value
     if (option === application) return
     if (option === "") {
-      setAzure({
-        projects: [],
-        project: "",
-        issue: {
-          title: "",
-          description: ""
-        },
-      })
-      setJira({
-        projects: [],
-        project: "",
-        issue: {
-          title: "",
-          description: ""
-        },
-      })
-    }
-    if (option === "azure") {
-      setJira({ projects: [], project: "", issue: { title: "", description: "" } })
-      getAzureProjects()
-    }
-    if (option === "jira") {
       setAzure({ projects: [], project: "", issue: { title: "", description: "" } })
-      getJiraProjects()
+      setJenkins({ jobs: [], job: "", builds: [], build: "" })
+      setJira({ projects: [], project: "", issue: { title: "", description: "" } })
     }
     setApplication(option)
+    switch (option) {
+      case "azure":
+        setJira({ projects: [], project: "", issue: { title: "", description: "" } })
+        setJenkins({ jobs: [], job: "", builds: [], build: "" })
+        getAzureProjects()
+        break;
+      case "jenkins":
+        setAzure({ projects: [], project: "", issue: { title: "", description: "" } })
+        setJira({ projects: [], project: "", issue: { title: "", description: "" } })
+        getJenkinsJobs()
+        break;
+      case "jira":
+        setAzure({ projects: [], project: "", issue: { title: "", description: "" } })
+        setJenkins({ jobs: [], job: "", builds: [], build: "" })
+        getJiraProjects()
+        break;
+    }
   }
 
   // handle project selection
@@ -206,28 +211,42 @@ function App() {
     setProject(option)
     if (!option.length) {
       setAzure({ ...azure, project: "" })
+      setJenkins({ ...jenkins, job: "" })
       setJira({ ...jira, project: "" })
     }
-    if (option === azure.project || option === jira.project || !option.length) return
+    if (option === azure.project || option === jenkins.job || option === jira.project ||
+      !option.length) return
     if (application === "azure") {
       setAzure({ ...azure, project: option })
+    } else if (application === "jenkins") {
+      setJenkins({ ...jenkins, job: option })
     } else if (application === "jira") {
       setJira({ ...jira, project: option })
     }
     if (application === "azure") {
       setConversation([...conversation, {
         message: <div>
-          <div>which below activities you wish to perform on <b>{option.toUpperCase()}</b> project?</div>
+          <div>which below activity you wish to perform on <b>{option.toUpperCase()}</b> project?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
         user: "system",
         keyword: "azure activity"
       }])
+    } else if (application === "jenkins") {
+      setConversation([...conversation, {
+        message: <div>
+          <div>which below activity you wish to perform on <b>{option.toUpperCase()}</b> job?</div>
+          <br></br>
+          <div>{` - build?`}</div>
+        </div>,
+        user: "system",
+        keyword: "jenkins activity"
+      }])
     } else if (application === "jira") {
       setConversation([...conversation, {
         message: <div>
-          <div>which below activities you wish to perform on <b>{option.toUpperCase()}</b> project?</div>
+          <div>which below activity you wish to perform on <b>{option.toUpperCase()}</b> project?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -404,21 +423,25 @@ function App() {
                 <option key={i} value={app}>{app}</option>
               )}
             </select>
-            {/* select projects */}
+            {/* select azure/jenkins/jira projects */}
             {(application === "azure" && azure.projects.length) ||
+              (application === "jenkins" && jenkins.jobs.length) ||
               (application === "jira" && jira.projects.length) ? <select
-                className="project"
+                className={jenkins.jobs.length ? "jobs" : "projects"}
                 value={project}
                 onChange={(e) => handleProjectSelection(e)}
               >
-              <option value="">-- project --</option>
+              <option value="">{jenkins.jobs.length ? "-- job --" : "-- project --"}</option>
               {azure.projects.length ?
                 azure.projects.map((pro: { id: string, name: string }, i) =>
                   <option key={i} value={pro.name}>{pro.name}</option>) :
-                jira.projects.length ?
-                  jira.projects.map((pro: { id: string, name: string }, i) =>
-                    <option key={i} value={pro.name}>{pro.name}</option>) :
-                  ""
+                jenkins.jobs.length ?
+                  jenkins.jobs.map((name, i) =>
+                    <option key={i} value={name}>{name}</option>) :
+                  jira.projects.length ?
+                    jira.projects.map((pro: { id: string, name: string }, i) =>
+                      <option key={i} value={pro.name}>{pro.name}</option>) :
+                    ""
               }
             </select> : ""}
             {/* <div className="dates">
@@ -434,13 +457,14 @@ function App() {
               type="text"
               value={text}
               onChange={(e) => handleUserInput(e)}
-              disabled={azure.project.length || jira.project.length ?
+              disabled={azure.project.length || jenkins.job || jira.project.length ?
                 false : true}
             />
             {/* send button */}
             <button
               onClick={() => handleSendClick()}
-              disabled={(azure.project.length || jira.project.length) && text.length ? false : true}
+              disabled={(azure.project.length || jenkins.job || jira.project.length) &&
+                text.length ? false : true}
             >Send</button>
           </div>
         </div>

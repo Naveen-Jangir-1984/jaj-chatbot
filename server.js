@@ -58,7 +58,7 @@ app.get('/getjobs', async (req, res) => {
       },
     }
   ).then(res => jobs = res.data.jobs);
-  res.json({ jobs: jobs })
+  res.json({ jobs })
 })
 
 app.post('/getbuilds', async (req, res) => {
