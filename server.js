@@ -16,29 +16,6 @@ const crumbIssuerApiUrl = `${jenkinsServer}/crumbIssuer/api/json`;
 const jenkinsUsername = process.env.JENKINS_USERNAME;
 const jenkinsApiToken = process.env.JENKINS_API_TOKEN;
 
-app.post('/triggerjob', async (req, res) => {
-  const jobName = req.body.jobname;
-  const crumbResponse = await axios.get(crumbIssuerApiUrl, {
-    auth: {
-      username: jenkinsUsername,
-      password: jenkinsApiToken,
-    },
-  });
-  const crumb = crumbResponse.data.crumb;
-  const crumbHeader = crumbResponse.data.crumbRequestField;
-
-  await axios.post(`${jenkinsServer}/job/${jobName}/build`,
-    {},
-    {
-      headers: {
-        [crumbHeader]: crumb,
-        Authorization: `Basic ${Buffer.from(`${jenkinsUsername}:${jenkinsApiToken}`).toString('base64')}`,
-      },
-    }
-  );
-  res.json({ msg: 'done' })
-})
-
 app.get('/getjobs', async (req, res) => {
   const crumbResponse = await axios.get(crumbIssuerApiUrl, {
     auth: {
@@ -60,7 +37,6 @@ app.get('/getjobs', async (req, res) => {
   ).then(res => jobs = res.data.jobs);
   res.json({ jobs })
 })
-
 app.post('/getbuilds', async (req, res) => {
   const jobname = req.body.jobname
   const crumbResponse = await axios.get(crumbIssuerApiUrl, {
@@ -81,7 +57,51 @@ app.post('/getbuilds', async (req, res) => {
       },
     }
   ).then(res => builds = res.data.builds);
-  res.json({ builds: builds })
+  res.json({ builds })
+})
+app.post('/getlastbuild', async (req, res) => {
+  const jobname = req.body.jobname
+  const crumbResponse = await axios.get(crumbIssuerApiUrl, {
+    auth: {
+      username: jenkinsUsername,
+      password: jenkinsApiToken,
+    },
+  });
+  const crumb = crumbResponse.data.crumb;
+  const crumbHeader = crumbResponse.data.crumbRequestField;
+  let build;
+  await axios.get(`${jenkinsServer}/job/${jobname}/lastBuild/api/json`,
+    {},
+    {
+      headers: {
+        [crumbHeader]: crumb,
+        Authorization: `Basic ${Buffer.from(`${jenkinsUsername}:${jenkinsApiToken}`).toString('base64')}`,
+      },
+    }
+  ).then(res => build = res.data);
+  res.json({ build })
+})
+app.post('/buildjob', async (req, res) => {
+  const jobname = req.body.jobname;
+  const crumbResponse = await axios.get(crumbIssuerApiUrl, {
+    auth: {
+      username: jenkinsUsername,
+      password: jenkinsApiToken,
+    },
+  });
+  const crumb = crumbResponse.data.crumb;
+  const crumbHeader = crumbResponse.data.crumbRequestField;
+
+  await axios.post(`${jenkinsServer}/job/${jobname}/build`,
+    {},
+    {
+      headers: {
+        [crumbHeader]: crumb,
+        Authorization: `Basic ${Buffer.from(`${jenkinsUsername}:${jenkinsApiToken}`).toString('base64')}`,
+      },
+    }
+  );
+  res.json({ data: "success" })
 })
 
 //JIRA ---------------------------------------------------------------
@@ -137,7 +157,6 @@ app.get('/getAzureProjects', async (req, res) => {
   }).then(res => data = res.data);
   res.json({ data })
 })
-
 app.post('/createAzureIssue', async (req, res) => {
   const { project, issue } = req.body
   let data;
@@ -155,6 +174,7 @@ app.post('/createAzureIssue', async (req, res) => {
   res.json({ data: data })
 })
 
+// port running info
 app.listen(port, () => {
   console.log(`server listening on port ${port}`)
 })

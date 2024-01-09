@@ -100,6 +100,7 @@ function App() {
       });
   }
 
+  // handle azure related methods
   const getJenkinsJobs = async () => {
     await axios.get(`http://localhost:8000/getjobs`)
       // .then(res => console.log(res.data.jobs))
@@ -108,18 +109,53 @@ function App() {
       })
       )
   }
+  const buildJenkinsJob = async () => {
+    let beforeBuild: any;
+    await axios.post(`http://localhost:8000/getlastbuild`, { jobname: jenkins.job, })
+      .then(res => beforeBuild = res.data.build)
+    await axios.post(`http://localhost:8000/buildjob`, { jobname: jenkins.job, })
+      .then(res => setConversation([...conversation, {
+        message: <div>{text}</div>,
+        user: "user",
+        keyword: "jenkins activity"
+      }, {
+        message: <div>{res.data.data === "success" ? "build is in progress, please wait..." : "unable to build !"}</div>,
+        user: "system",
+        keyword: "jenkins activity"
+      }]))
+    await new Promise(resolve => setTimeout(resolve, 10000));
+    let afterBuild: any;
+    await axios.post(`http://localhost:8000/getlastbuild`, { jobname: jenkins.job, })
+      .then(res => afterBuild = res.data.build)
 
-  // const getJenkinsBuilds = async (jobname: string) => {
-  //   if (application !== "jenkins") return
-  //   await axios.post(`http://localhost:8000/getbuilds`, { jobname: jobname, })
-  //     .then((res) => { setJenkins({ ...jenkins, builds: res.data.builds }) })
-  // }
+    if (beforeBuild.number < afterBuild.number) {
+      setTimeout(() => setConversation([...conversation, {
+        message: <div>{text}</div>,
+        user: "user",
+        keyword: "jenkins activity"
+      },
+      {
+        message: <div>
+          <div><b>
+            <span>build #{afterBuild.id} has been succesfully created </span>
+            <span>{afterBuild.result === "SUCCESS" ? " and " : " but "}</span>
+            <span>{afterBuild.result === "SUCCESS" ?
+              <span style={{ backgroundColor: "lightgreen", padding: "2px 5px", borderRadius: "5px" }}>completed</span> :
+              <span style={{ backgroundColor: "lightcoral", padding: "2px 5px", borderRadius: "5px" }}>failed</span>}</span> !</b>
+          </div>
+          <br></br>
+          <div>which below activity you wish to perform on <b>{jenkins.job.toUpperCase()}</b> project?</div>
+          <br></br>
+          <div>{` - build?`}</div>
+        </div>,
+        user: "system",
+        keyword: "jenkins activity"
+      }
+      ]), 1000)
+      setTimeout(() => scrollToBottom(), 1500)
+    }
+  }
 
-  // const trigger = async (job: string) => {
-  //   if (application !== "jenkins") return
-  //   await axios.post(`http://localhost:8000/triggerjob`, { jobname: job, })
-  //     .then((res) => console.log(res.data.msg));
-  // }
 
   // handle jira related methods
   const getJiraProjects = async () => {
@@ -181,6 +217,7 @@ function App() {
     const option = e.target.value
     if (option === application) return
     if (option === "") {
+      setProject("")
       setAzure({ projects: [], project: "", issue: { title: "", description: "" } })
       setJenkins({ jobs: [], job: "", builds: [], build: "" })
       setJira({ projects: [], project: "", issue: { title: "", description: "" } })
@@ -265,19 +302,11 @@ function App() {
   // handle send button click
   const handleSendClick = () => {
     setTimeout(() => scrollToBottom(), 1)
+
+    // handle azure related conversations
     if (application === "azure" &&
       conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "azure activity" &&
-      text.includes("issue")) {
-      setConversation([...conversation,
-      { message: <div>{text}</div>, user: "user", keyword: "create issue" },])
-      setTimeout(() => setConversation([...conversation,
-      { message: <div>{text}</div>, user: "user", keyword: "create issue" },
-      { message: <div>{`please provide an issue title`}</div>, user: "system", keyword: "issue title" }
-      ]), 1000)
-    } else if (application === "jira" &&
-      conversation[conversation.length - 1].user === "system" &&
-      conversation[conversation.length - 1].keyword === "jira activity" &&
       text.includes("issue")) {
       setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "create issue" },])
@@ -289,16 +318,6 @@ function App() {
       conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "issue title") {
       setAzure({ ...azure, issue: { ...azure.issue, title: text } })
-      setConversation([...conversation,
-      { message: <div>{text}</div>, user: "user", keyword: "issue title" },])
-      setTimeout(() => setConversation([...conversation,
-      { message: <div>{text}</div>, user: "user", keyword: "issue title" },
-      { message: <div>{`please enter issue description`}</div>, user: "system", keyword: "issue description" }
-      ]), 1000)
-    } else if (application === "jira" &&
-      conversation[conversation.length - 1].user === "system" &&
-      conversation[conversation.length - 1].keyword === "issue title") {
-      setJira({ ...jira, issue: { ...azure.issue, title: text } })
       setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "issue title" },])
       setTimeout(() => setConversation([...conversation,
@@ -323,6 +342,50 @@ function App() {
         user: "system",
         keyword: "azure issue confirmation"
       },]), 1000)
+    } else if (application === "azure" &&
+      conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword === "azure issue confirmation" &&
+      text.toLowerCase().includes("yes")) {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },])
+      createIssueInAzure()
+    } else if (application === "azure") {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },])
+      setTimeout(() => setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },
+      {
+        message: <div>
+          <div>sorry, you will have to choose one of the option below on <b>{azure.project.toUpperCase()}</b> project?</div>
+          <br></br>
+          <div>{` - create an issue?`}</div>
+        </div>,
+        user: "system",
+        keyword: "azure activity"
+      }]), 1000)
+    }
+
+    // handke jira related converstaions
+    else if (application === "jira" &&
+      conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword === "jira activity" &&
+      text.includes("issue")) {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "create issue" },])
+      setTimeout(() => setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "create issue" },
+      { message: <div>{`please provide an issue title`}</div>, user: "system", keyword: "issue title" }
+      ]), 1000)
+    } else if (application === "jira" &&
+      conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword === "issue title") {
+      setJira({ ...jira, issue: { ...azure.issue, title: text } })
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "issue title" },])
+      setTimeout(() => setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "issue title" },
+      { message: <div>{`please enter issue description`}</div>, user: "system", keyword: "issue description" }
+      ]), 1000)
     } else if (application === "jira" &&
       conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "issue description") {
@@ -341,13 +404,6 @@ function App() {
         user: "system",
         keyword: "jira issue confirmation"
       },]), 1000)
-    } else if (application === "azure" &&
-      conversation[conversation.length - 1].user === "system" &&
-      conversation[conversation.length - 1].keyword === "azure issue confirmation" &&
-      text.toLowerCase().includes("yes")) {
-      setConversation([...conversation,
-      { message: <div>{text}</div>, user: "user", keyword: "" },])
-      createIssueInAzure()
     } else if (application === "jira" &&
       conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "jira issue confirmation" &&
@@ -355,20 +411,6 @@ function App() {
       setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "" },])
       createIssueInJira()
-    } else if (application === "azure") {
-      setConversation([...conversation,
-      { message: <div>{text}</div>, user: "user", keyword: "" },])
-      setTimeout(() => setConversation([...conversation,
-      { message: <div>{text}</div>, user: "user", keyword: "" },
-      {
-        message: <div>
-          <div>sorry, you will have to choose one of the option below on <b>{azure.project.toUpperCase()}</b> project?</div>
-          <br></br>
-          <div>{` - create an issue?`}</div>
-        </div>,
-        user: "system",
-        keyword: "azure activity"
-      }]), 1000)
     } else if (application === "jira") {
       setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "" },])
@@ -384,6 +426,47 @@ function App() {
         keyword: "jira activity"
       }]), 1000)
     }
+
+    // handle jenkins related converstaions
+    else if (application === "jenkins" &&
+      conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword === "jenkins activity" &&
+      text.includes("build")) {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "build" },])
+      setTimeout(() => setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "build" },
+      {
+        message: <div>
+          <div>please confirm on build?</div>
+          <br></br>
+          <div> - yes / no</div>
+        </div>, user: "system", keyword: "jenkins build confirmation"
+      }
+      ]), 1000)
+    } else if (application === "jenkins" &&
+      conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword === "jenkins build confirmation" &&
+      text.toLowerCase().includes("yes")) {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },])
+      buildJenkinsJob()
+    } else if (application === "jenkins") {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },])
+      setTimeout(() => setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },
+      {
+        message: <div>
+          <div>sorry, you will have to choose one of the option below on <b>{jenkins.job.toUpperCase()}</b> job?</div>
+          <br></br>
+          <div>{` - build?`}</div>
+        </div>,
+        user: "system",
+        keyword: "jenkins activity"
+      }]), 1000)
+    }
+
     setText("")
     setTimeout(() => scrollToBottom(), 1500)
   }
