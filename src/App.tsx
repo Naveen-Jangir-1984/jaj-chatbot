@@ -10,7 +10,7 @@ function App() {
     keyword: string,
   }
 
-  // application variables
+  // application state variables
   const applications = ["azure", "jenkins", "jira"]
   const [application, setApplication] = useState('')
   const [project, setProject] = useState('')
@@ -24,13 +24,10 @@ function App() {
   const [azure, setAzure] = useState({
     projects: [],
     project: "",
-    issue: {
-      title: "",
-      description: ""
-    },
+    issue: { title: "", description: "" }
   })
 
-  // applications functions
+  // common methods
   const msg = useRef<any>(null);
   const scrollToBottom = () => {
     if (msg.current) {
@@ -56,15 +53,16 @@ function App() {
   //     .then((res) => { setJenkins({ ...jenkins, builds: res.data.builds }) })
   // }
 
-  const createIssueInJira = async (summary: string, desc: string) => {
+  // handle jira related methods
+  const createIssueInJira = async () => {
     const pro: { id: string, name: string }[] = jira.projects.filter((p: { name: string }) => p.name === jira.project)
     const issue = {
       fields: {
         project: {
           key: pro[0].id
         },
-        summary: summary,
-        description: desc,
+        summary: jira.issue.title,
+        description: jira.issue.description,
         issuetype: {
           name: 'Story',
         },
@@ -84,7 +82,7 @@ function App() {
           message: <div>
             <div><b>Issue #{res.data.data.id} has been succesfully created!</b></div>
             <br></br>
-            <div>which below activities you wish to perform in <b>{jira.project.toUpperCase()}</b>?</div>
+            <div>which below activities you wish to perform on <b>{jira.project.toUpperCase()}</b> project?</div>
             <br></br>
             <div>{` - create an issue?`}</div>
           </div>,
@@ -96,7 +94,6 @@ function App() {
         setTimeout(() => scrollToBottom(), 1500)
       });
   }
-
   const getJiraProjects = async () => {
     await axios.get(
       `http://localhost:8000/getJiraProjects`)
@@ -111,6 +108,7 @@ function App() {
       )
   };
 
+  // handle azure related methods
   const getAzureProjects = async () => {
     await axios.get(
       `http://localhost:8000/getAzureProjects`)
@@ -124,19 +122,18 @@ function App() {
       })
       )
   };
-
-  const createIssueInAzure = async (title: string, desc: string) => {
+  const createIssueInAzure = async () => {
     if (application !== "azure") return
     const issue = [
       {
         op: 'add',
         path: '/fields/System.Title',
-        value: title,
+        value: azure.issue.title,
       },
       {
         op: 'add',
         path: '/fields/System.Description',
-        value: desc,
+        value: azure.issue.description,
       },
       {
         op: 'add',
@@ -157,7 +154,7 @@ function App() {
           message: <div>
             <div><b>Issue #{res.data.data.id} has been succesfully created!</b></div>
             <br></br>
-            <div>which below activities you wish to perform in <b>{azure.project.toUpperCase()}</b>?</div>
+            <div>which below activities you wish to perform on <b>{azure.project.toUpperCase()}</b> project?</div>
             <br></br>
             <div>{` - create an issue?`}</div>
           </div>,
@@ -220,7 +217,7 @@ function App() {
     if (application === "azure") {
       setConversation([...conversation, {
         message: <div>
-          <div>which below activities you wish to perform in <b>{option.toUpperCase()}</b>?</div>
+          <div>which below activities you wish to perform on <b>{option.toUpperCase()}</b> project?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -230,7 +227,7 @@ function App() {
     } else if (application === "jira") {
       setConversation([...conversation, {
         message: <div>
-          <div>which below activities you wish to perform in <b>{option.toUpperCase()}</b>?</div>
+          <div>which below activities you wish to perform on <b>{option.toUpperCase()}</b> project?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -241,7 +238,12 @@ function App() {
     setTimeout(() => scrollToBottom(), 1)
   }
 
-  // handle send click
+  // handle user input
+  const handleUserInput = (e: ChangeEvent<HTMLInputElement>) => {
+    setText(e.target.value)
+  }
+
+  // handle send button click
   const handleSendClick = () => {
     setTimeout(() => scrollToBottom(), 1)
     if (application === "azure" &&
@@ -288,22 +290,52 @@ function App() {
       conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "issue description") {
       setAzure({ ...azure, issue: { ...azure.issue, description: text } })
-      setConversation([...conversation, {
-        message: <div>{text}</div>,
-        user: "user",
-        keyword: "azure activity"
-      },])
-      createIssueInAzure(azure.issue.title, text)
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" }
+      ])
+      setTimeout(() => setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },
+      {
+        message: <div>
+          <div>please confirm to create an issue?</div>
+          <br></br>
+          <div> - yes / no</div>
+        </div>,
+        user: "system",
+        keyword: "azure issue confirmation"
+      },]), 1000)
     } else if (application === "jira" &&
       conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "issue description") {
-      setJira({ ...jira, issue: { ...jira.issue, description: text } })
-      setConversation([...conversation, {
-        message: <div>{text}</div>,
-        user: "user",
-        keyword: "azure activity"
-      },])
-      createIssueInJira(jira.issue.title, text)
+      setAzure({ ...jira, issue: { ...jira.issue, description: text } })
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" }
+      ])
+      setTimeout(() => setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },
+      {
+        message: <div>
+          <div>please confirm to create an issue?</div>
+          <br></br>
+          <div> - yes / no</div>
+        </div>,
+        user: "system",
+        keyword: "jira issue confirmation"
+      },]), 1000)
+    } else if (application === "azure" &&
+      conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword === "azure issue confirmation" &&
+      text.toLowerCase().includes("yes")) {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },])
+      createIssueInAzure()
+    } else if (application === "jira" &&
+      conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword === "jira issue confirmation" &&
+      text.toLowerCase().includes("yes")) {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },])
+      createIssueInJira()
     } else if (application === "azure") {
       setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "" },])
@@ -311,7 +343,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "" },
       {
         message: <div>
-          <div>sorry, you will have to choose one of the option below in <b>{azure.project.toUpperCase()}</b>?</div>
+          <div>sorry, you will have to choose one of the option below on <b>{azure.project.toUpperCase()}</b> project?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -325,7 +357,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "" },
       {
         message: <div>
-          <div>sorry, you will have to choose one of the option below in <b>{jira.project.toUpperCase()}</b>?</div>
+          <div>sorry, you will have to choose one of the option below on <b>{jira.project.toUpperCase()}</b> project?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -350,7 +382,7 @@ function App() {
                 className="message"
                 style={{
                   float: c.user === "system" ? "left" : "right",
-                  backgroundColor: c.user === "system" ? "#def" : "#ddd"
+                  backgroundColor: c.user === "system" ? "#def" : "#bfb"
                 }}
               >{c.message}
               </div>
@@ -367,7 +399,7 @@ function App() {
               className="application"
               value={application}
               onChange={(e) => handleApplicationSelection(e)}>
-              <option value="">application</option>
+              <option value="">-- application --</option>
               {applications.map((app, i) =>
                 <option key={i} value={app}>{app}</option>
               )}
@@ -379,7 +411,7 @@ function App() {
                 value={project}
                 onChange={(e) => handleProjectSelection(e)}
               >
-              <option value="">projects</option>
+              <option value="">-- project --</option>
               {azure.projects.length ?
                 azure.projects.map((pro: { id: string, name: string }, i) =>
                   <option key={i} value={pro.name}>{pro.name}</option>) :
@@ -401,7 +433,7 @@ function App() {
             <input
               type="text"
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => handleUserInput(e)}
               disabled={azure.project.length || jira.project.length ?
                 false : true}
             />
