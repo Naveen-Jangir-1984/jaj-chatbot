@@ -355,7 +355,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "" },
       {
         message: <div>
-          <div>sorry, you will have to choose one of the option below on <b>{azure.project.toUpperCase()}</b> project?</div>
+          <div>sorry,  you can choose ONLY one of the option below on <b>{azure.project.toUpperCase()}</b> project?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -417,7 +417,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "" },
       {
         message: <div>
-          <div>sorry, you will have to choose one of the option below on <b>{jira.project.toUpperCase()}</b> project?</div>
+          <div>sorry,  you can choose ONLY one of the option below on <b>{jira.project.toUpperCase()}</b> project?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -457,7 +457,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "" },
       {
         message: <div>
-          <div>sorry, you will have to choose one of the option below on <b>{jenkins.job.toUpperCase()}</b> job?</div>
+          <div>sorry,  you can choose ONLY one of the option below on <b>{jenkins.job.toUpperCase()}</b> job?</div>
           <br></br>
           <div>{` - build?`}</div>
         </div>,
