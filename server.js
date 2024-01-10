@@ -10,6 +10,36 @@ app.use(cors())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+//AZURE --------------------------------------------------------------
+const azureDevOpsOrganization = process.env.AZURE_DEVOPS_ORGANIZATION;
+const azureDevOpsPersonalAccessToken = process.env.AZURE_DEVOPS_API_TOKEN
+
+app.get('/getAzureProjects', async (req, res) => {
+  let data;
+  await axios.get(`https://dev.azure.com/${azureDevOpsOrganization}/_apis/projects?api-version=7.1`, {
+    headers: {
+      Authorization: `Basic ${btoa(`:${azureDevOpsPersonalAccessToken}`)}`,
+    },
+  }).then(res => data = res.data);
+  res.json({ data })
+})
+app.post('/createAzureIssue', async (req, res) => {
+  const { project, issue } = req.body
+  let data;
+
+  await axios.post(
+    `https://dev.azure.com/${azureDevOpsOrganization}/${project}/_apis/wit/workitems/$${issue[2].value}?api-version=7.1`,
+    issue,
+    {
+      headers: {
+        'Content-Type': 'application/json-patch+json',
+        Authorization: `Basic ${btoa(`:${azureDevOpsPersonalAccessToken}`)}`,
+      },
+    }
+  ).then(res => data = res.data);
+  res.json({ data: data })
+})
+
 //JENKINS ------------------------------------------------------------
 const jenkinsServer = process.env.JENKINS_SERVER;
 const crumbIssuerApiUrl = `${jenkinsServer}/crumbIssuer/api/json`;
@@ -138,36 +168,6 @@ app.post('/createJiraIssue', async (req, res) => {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Basic ${base64Credentials}`,
-      },
-    }
-  ).then(res => data = res.data);
-  res.json({ data: data })
-})
-
-//AZURE --------------------------------------------------------------
-const azureDevOpsOrganization = process.env.AZURE_DEVOPS_ORGANIZATION;
-const azureDevOpsPersonalAccessToken = process.env.AZURE_DEVOPS_API_TOKEN
-
-app.get('/getAzureProjects', async (req, res) => {
-  let data;
-  await axios.get(`https://dev.azure.com/${azureDevOpsOrganization}/_apis/projects?api-version=7.1`, {
-    headers: {
-      Authorization: `Basic ${btoa(`:${azureDevOpsPersonalAccessToken}`)}`,
-    },
-  }).then(res => data = res.data);
-  res.json({ data })
-})
-app.post('/createAzureIssue', async (req, res) => {
-  const { project, issue } = req.body
-  let data;
-
-  await axios.post(
-    `https://dev.azure.com/${azureDevOpsOrganization}/${project}/_apis/wit/workitems/$Issue?api-version=7.1`,
-    issue,
-    {
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Authorization: `Basic ${btoa(`:${azureDevOpsPersonalAccessToken}`)}`,
       },
     }
   ).then(res => data = res.data);
