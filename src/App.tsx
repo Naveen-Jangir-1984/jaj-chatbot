@@ -155,8 +155,8 @@ function App() {
             >build #{afterBuild.id}</span> has been succesfully created
             <span>{afterBuild.result === "SUCCESS" ? " and " : " but "}</span>
             <span>{afterBuild.result === "SUCCESS" ?
-              <span style={{ backgroundColor: "lightgreen", padding: "2px 5px", borderRadius: "5px" }}>completed</span> :
-              <span style={{ backgroundColor: "lightcoral", padding: "2px 5px", borderRadius: "5px" }}>failed</span>}</span> !</b>
+              <span className="workitem" style={{ backgroundColor: "lightgreen" }}>completed</span> :
+              <span className="workitem" style={{ backgroundColor: "lightcoral" }}>failed</span>}</span> !</b>
           </div>
           <br></br>
           <div>which below activity you wish to perform on <b>{jenkins.job.toUpperCase()}</b> project?</div>
