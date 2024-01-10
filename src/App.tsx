@@ -75,6 +75,20 @@ function App() {
       },
     ];
 
+    setConversation([...conversation, {
+      message: <div>{text}</div>,
+      user: "user",
+      keyword: "azure activity"
+    }, {
+      message: <div style={{
+        display: "flex",
+        columnGap: "10px",
+        alignItems: "center"
+      }}>{azure.issue.type} creation is progress, please wait<div className="spinner"></div></div>,
+      user: "system",
+      keyword: "azure activity"
+    }])
+
     await axios.post(
       `http://localhost:8000/createAzureIssue`, { project: azure.project, issue: issue })
       .then(res => {
@@ -207,6 +221,20 @@ function App() {
         },
       },
     };
+
+    setConversation([...conversation, {
+      message: <div>{text}</div>,
+      user: "user",
+      keyword: "jira activity"
+    }, {
+      message: <div style={{
+        display: "flex",
+        columnGap: "10px",
+        alignItems: "center"
+      }}>{jira.issue.type} creation is progress, please wait<div className="spinner"></div></div>,
+      user: "system",
+      keyword: "jira activity"
+    }])
 
     await axios.post(
       `http://localhost:8000/createJiraIssue`, { issue: issue })
@@ -383,7 +411,8 @@ function App() {
     } else if (application === "azure" &&
       conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "azure issue type" &&
-      (text.toLowerCase().includes("epic") || text.toLowerCase().includes("story") || text.toLowerCase().includes("bug") || text.toLowerCase().includes("task"))) {
+      (text.toLowerCase().includes("epic") || text.toLowerCase().includes("story") ||
+        text.toLowerCase().includes("bug") || text.toLowerCase().includes("task"))) {
       const issuetype = text.toLowerCase().includes("epic") && !text.toLowerCase().includes("story") && !text.toLowerCase().includes("bug") && !text.toLowerCase().includes("task") ?
         "Epic" : text.toLowerCase().includes("story") && !text.toLowerCase().includes("bug") && !text.toLowerCase().includes("task") ?
           "User Story" : text.toLowerCase().includes("bug") && !text.toLowerCase().includes("task") ?
@@ -480,6 +509,7 @@ function App() {
           <div> - epic</div>
           <div> - story</div>
           <div> - bug</div>
+          <div> - task</div>
         </div>,
         user: "system",
         keyword: "jira issue type"
@@ -487,10 +517,12 @@ function App() {
     } else if (application === "jira" &&
       conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "jira issue type" &&
-      (text.toLowerCase().includes("epic") || text.toLowerCase().includes("story") || text.toLowerCase().includes("bug"))) {
-      const issuetype = text.toLowerCase().includes("epic") && !text.toLowerCase().includes("story") && !text.toLowerCase().includes("bug") ?
-        "Epic" : text.toLowerCase().includes("story") && !text.toLowerCase().includes("bug") ?
-          "Story" : "Bug"
+      (text.toLowerCase().includes("epic") || text.toLowerCase().includes("story") ||
+        text.toLowerCase().includes("bug") || text.toLowerCase().includes("task"))) {
+      const issuetype = text.toLowerCase().includes("epic") && !text.toLowerCase().includes("story") && !text.toLowerCase().includes("bug") && !text.toLowerCase().includes("task") ?
+        "Epic" : text.toLowerCase().includes("story") && !text.toLowerCase().includes("bug") && !text.toLowerCase().includes("task") ?
+          "User Story" : text.toLowerCase().includes("bug") && !text.toLowerCase().includes("task") ?
+            "Bug" : "Task"
       setJira({ ...jira, issue: { ...jira.issue, type: issuetype } })
       setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "jira issue type" }
