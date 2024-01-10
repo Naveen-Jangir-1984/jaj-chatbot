@@ -131,7 +131,15 @@ function App() {
         user: "user",
         keyword: "jenkins activity"
       }, {
-        message: <div>{res.data.data === "success" ? "build is in progress, please wait..." : "unable to build !"}</div>,
+        message: <div>
+          <div>{res.data.data === "success" ?
+            <div style={{
+              display: "flex",
+              columnGap: "10px",
+              alignItems: "center"
+            }}>build is in progress, please wait<div className="spinner"></div></div> :
+            "unable to build !"}</div>
+        </div>,
         user: "system",
         keyword: "jenkins activity"
       }]))
