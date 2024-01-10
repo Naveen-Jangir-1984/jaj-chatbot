@@ -135,7 +135,7 @@ function App() {
         user: "system",
         keyword: "jenkins activity"
       }]))
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    await new Promise(resolve => setTimeout(resolve, 20000));
     let afterBuild: any;
     await axios.post(`http://localhost:8000/getlastbuild`, { jobname: jenkins.job, })
       .then(res => afterBuild = res.data.build)
@@ -149,7 +149,10 @@ function App() {
       {
         message: <div>
           <div><b>
-            <span>build #{afterBuild.id} has been succesfully created </span>
+            <span
+              className="workitem"
+              style={{ backgroundColor: "lightblue" }}
+            >build #{afterBuild.id}</span> has been succesfully created
             <span>{afterBuild.result === "SUCCESS" ? " and " : " but "}</span>
             <span>{afterBuild.result === "SUCCESS" ?
               <span style={{ backgroundColor: "lightgreen", padding: "2px 5px", borderRadius: "5px" }}>completed</span> :
