@@ -107,6 +107,11 @@
   background-color: lightsalmon;
 }
 
+.workitem {
+  border-radius: 5px;
+  padding: 2px 5px 4px 5px;
+}
+
 input[type=date] {
   width: 100px;
   height: 90%;

@@ -85,7 +85,17 @@ function App() {
         },
         {
           message: <div>
-            <div><b>{azure.issue.type} #{res.data.data.id} has been succesfully created!</b></div>
+            <div><b>
+              <span
+                className="workitem"
+                style={{
+                  backgroundColor: azure.issue.type === "User Story" ?
+                    "#90EE90" : azure.issue.type === "Bug" ?
+                      "#FF7276" : azure.issue.type === "Task" ?
+                        "#FFBF00" : "#ADD8E6"
+                }}
+              >{azure.issue.type} #{res.data.data.id}</span> has been succesfully created!</b>
+            </div>
             <br></br>
             <div>which below activity you wish to perform on <b>{azure.project.toUpperCase()}</b> project?</div>
             <br></br>
@@ -198,7 +208,16 @@ function App() {
         },
         {
           message: <div>
-            <div><b>{jira.issue.type} #{res.data.data.id} has been succesfully created!</b></div>
+            <div><b>
+              <span
+                className="workitem"
+                style={{
+                  backgroundColor: azure.issue.type === "User Story" ?
+                    "#90EE90" : azure.issue.type === "Bug" ?
+                      "#FF7276" : azure.issue.type === "Task" ?
+                        "#FFBF00" : "#ADD8E6"
+                }}
+              >{jira.issue.type} #{res.data.data.id}</span> has been succesfully created!</b></div>
             <br></br>
             <div>which below activity you wish to perform on <b>{jira.project.toUpperCase()}</b> project?</div>
             <br></br>
