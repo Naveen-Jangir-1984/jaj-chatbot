@@ -111,7 +111,7 @@ function App() {
               >{azure.issue.type} #{res.data.data.id}</span> has been succesfully created!</b>
             </div>
             <br></br>
-            <div>which below activity you wish to perform on <b>{azure.project.toUpperCase()}</b> project?</div>
+            <div>which below activity you wish to perform on <b>{azure.project.toUpperCase()}</b> ?</div>
             <br></br>
             <div>{` - create an issue?`}</div>
           </div>,
@@ -181,7 +181,7 @@ function App() {
               <span className="workitem" style={{ backgroundColor: "lightcoral" }}>failed</span>}</span> !</b>
           </div>
           <br></br>
-          <div>which below activity you wish to perform on <b>{jenkins.job.toUpperCase()}</b> project?</div>
+          <div>which below activity you wish to perform on <b>{jenkins.job.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - build?`}</div>
         </div>,
@@ -258,7 +258,7 @@ function App() {
                 }}
               >{jira.issue.type} #{res.data.data.id}</span> has been succesfully created!</b></div>
             <br></br>
-            <div>which below activity you wish to perform on <b>{jira.project.toUpperCase()}</b> project?</div>
+            <div>which below activity you wish to perform on <b>{jira.project.toUpperCase()}</b> ?</div>
             <br></br>
             <div>{` - create an issue?`}</div>
           </div>,
@@ -326,7 +326,7 @@ function App() {
     if (application === "azure") {
       setConversation([...conversation, {
         message: <div>
-          <div>which below activity you wish to perform on <b>{option.toUpperCase()}</b> project?</div>
+          <div>which below activity you wish to perform on <b>{option.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -336,7 +336,7 @@ function App() {
     } else if (application === "jenkins") {
       setConversation([...conversation, {
         message: <div>
-          <div>which below activity you wish to perform on <b>{option.toUpperCase()}</b> job?</div>
+          <div>which below activity you wish to perform on <b>{option.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - build?`}</div>
         </div>,
@@ -346,7 +346,7 @@ function App() {
     } else if (application === "jira") {
       setConversation([...conversation, {
         message: <div>
-          <div>which below activity you wish to perform on <b>{option.toUpperCase()}</b> project?</div>
+          <div>which below activity you wish to perform on <b>{option.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -449,7 +449,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "azure activity" },
       {
         message: <div>
-          <div>ok let us start over again, please chose one of the option below on <b>{azure.project.toUpperCase()}</b> project?</div>
+          <div>ok let us start over again, please chose one of the option below on <b>{azure.project.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -463,7 +463,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "azure activity" },
       {
         message: <div>
-          <div><span className="sorry">sorry</span>  you can choose ONLY one of the option below on <b>{azure.project.toUpperCase()}</b> project?</div>
+          <div><span className="sorry">sorry</span>  you can choose ONLY one of the option below on <b>{azure.project.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -521,7 +521,7 @@ function App() {
         text.toLowerCase().includes("bug") || text.toLowerCase().includes("task"))) {
       const issuetype = text.toLowerCase().includes("epic") && !text.toLowerCase().includes("story") && !text.toLowerCase().includes("bug") && !text.toLowerCase().includes("task") ?
         "Epic" : text.toLowerCase().includes("story") && !text.toLowerCase().includes("bug") && !text.toLowerCase().includes("task") ?
-          "User Story" : text.toLowerCase().includes("bug") && !text.toLowerCase().includes("task") ?
+          "Story" : text.toLowerCase().includes("bug") && !text.toLowerCase().includes("task") ?
             "Bug" : "Task"
       setJira({ ...jira, issue: { ...jira.issue, type: issuetype } })
       setConversation([...conversation,
@@ -555,7 +555,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "jira activity" },
       {
         message: <div>
-          <div>ok let us start over again, please chose one of the option below on <b>{jira.project.toUpperCase()}</b> project?</div>
+          <div>ok let us start over again, please chose one of the option below on <b>{jira.project.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -569,7 +569,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "jira activity" },
       {
         message: <div>
-          <div><span className="sorry">sorry</span>  you can choose ONLY one of the option below on <b>{jira.project.toUpperCase()}</b> project?</div>
+          <div><span className="sorry">sorry</span>  you can choose ONLY one of the option below on <b>{jira.project.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -609,7 +609,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "" },
       {
         message: <div>
-          <div><span className="sorry">sorry</span>  you can choose ONLY one of the option below on <b>{jenkins.job.toUpperCase()}</b> job?</div>
+          <div><span className="sorry">sorry</span>  you can choose ONLY one of the option below on <b>{jenkins.job.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - build?`}</div>
         </div>,
