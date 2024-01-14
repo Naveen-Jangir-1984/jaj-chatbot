@@ -162,8 +162,11 @@ select {
   border-radius: 5px;
 }
 
+table {
+  border-radius: 5px;
+  overflow: hidden;
+}
 table, th, tr, td {
-  border: 1px solid black;
   border-collapse: collapse;
 }
 th {
