@@ -159,6 +159,7 @@ input[type=text] {
 .input button {
   width: 15%;
   height: 100%;
+  cursor: pointer;
 }
 
 select {
