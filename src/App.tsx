@@ -126,7 +126,14 @@ function App() {
       });
   }
 
-  // handle azure related methods
+  // handle jenkins related methods
+  const formatDuration = (duration: any) => {
+    const seconds = Math.floor(duration / 1000);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+  };
   const getJenkinsJobs = async () => {
     await axios.get(`http://localhost:8000/getjobs`)
       // .then(res => console.log(res.data.jobs))
@@ -134,6 +141,66 @@ function App() {
         ...jenkins, jobs: res.data.jobs.map((pro: { name: string }) => pro.name)
       })
       )
+  }
+  const getJenkinsJobBuilds = async () => {
+    setConversation([...conversation, {
+      message: <div>{text}</div>,
+      user: "user",
+      keyword: "jenkins activity"
+    }, {
+      message: <div>
+        <div style={{
+          display: "flex",
+          columnGap: "10px",
+          alignItems: "center"
+        }}>build is in progress, please wait<div className="spinner"></div></div>
+      </div>,
+      user: "system",
+      keyword: "jenkins activity"
+    }])
+    await axios.post(`http://localhost:8000/getjobbuilds`, { jobname: jenkins.job })
+      // .then(res => console.log(res.data.builds))
+      .then(res => {
+        setTimeout(() => setConversation([...conversation, {
+          message: <div>{text}</div>,
+          user: "user",
+          keyword: "jenkins activity"
+        },
+        {
+          message: <div>
+            <div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Build #</th>
+                    <th>Status</th>
+                    <th>Start Date & Time</th>
+                    <th>Duration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {res.data.builds.map((build: any, i: number) => <tr key={i}>
+                    <td>{build.number}</td>
+                    <td>{build.result}</td>
+                    <td>{new Date(build.timestamp).toLocaleString()}</td>
+                    <td>{formatDuration(build.duration)}</td>
+                  </tr>)}
+                </tbody>
+              </table>
+            </div>
+            <br></br>
+            <div>which below activity you wish to perform on <b>{jenkins.job.toUpperCase()}</b> ?</div>
+            <br></br>
+            <div>{` - build?`}</div>
+            <div>{` - get all builds?`}</div>
+          </div>,
+          user: "system",
+          keyword: "jenkins activity"
+        }
+        ]), 1000)
+        setJenkins({ ...jenkins, builds: res.data.builds })
+      })
+    setTimeout(() => scrollToBottom(), 1500)
   }
   const buildJenkinsJob = async () => {
     let beforeBuild: any;
@@ -184,6 +251,7 @@ function App() {
           <div>which below activity you wish to perform on <b>{jenkins.job.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - build?`}</div>
+          <div>{` - get all builds?`}</div>
         </div>,
         user: "system",
         keyword: "jenkins activity"
@@ -339,6 +407,7 @@ function App() {
           <div>which below activity you wish to perform on <b>{option.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - build?`}</div>
+          <div>{` - get all builds?`}</div>
         </div>,
         user: "system",
         keyword: "jenkins activity"
@@ -449,7 +518,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "azure activity" },
       {
         message: <div>
-          <div>ok let us start over again, please chose one of the option below on <b>{azure.project.toUpperCase()}</b> ?</div>
+          <div>ok let us start again, please chose one of the option below on <b>{azure.project.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -463,7 +532,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "azure activity" },
       {
         message: <div>
-          <div><span className="sorry">sorry</span>  you can choose ONLY one of the option below on <b>{azure.project.toUpperCase()}</b> ?</div>
+          <div><span className="sorry">sorry</span>  you can request ONLY one of the option below on <b>{azure.project.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -555,7 +624,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "jira activity" },
       {
         message: <div>
-          <div>ok let us start over again, please chose one of the option below on <b>{jira.project.toUpperCase()}</b> ?</div>
+          <div>ok let us start again, please chose one of the option below on <b>{jira.project.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -569,7 +638,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "jira activity" },
       {
         message: <div>
-          <div><span className="sorry">sorry</span>  you can choose ONLY one of the option below on <b>{jira.project.toUpperCase()}</b> ?</div>
+          <div><span className="sorry">sorry</span>  you can request ONLY one of the option below on <b>{jira.project.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - create an issue?`}</div>
         </div>,
@@ -582,7 +651,7 @@ function App() {
     else if (application === "jenkins" &&
       conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "jenkins activity" &&
-      text.includes("build")) {
+      (!text.includes("all") && text.includes("build") && text !== "builds")) {
       setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "build" },])
       setTimeout(() => setConversation([...conversation,
@@ -597,11 +666,52 @@ function App() {
       ]), 1000)
     } else if (application === "jenkins" &&
       conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword === "jenkins activity" &&
+      ((text.includes("all") && text.includes("builds")) || text === "builds")) {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "all builds" },])
+      setTimeout(() => setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "all builds" },
+      {
+        message: <div>
+          <div>please confirm on extracting all builds for <b>{jenkins.job}</b> ?</div>
+          <br></br>
+          <div> - yes / no</div>
+        </div>, user: "system", keyword: "jenkins all builds confirmation"
+      }
+      ]), 1000)
+    } else if (application === "jenkins" &&
+      conversation[conversation.length - 1].user === "system" &&
       conversation[conversation.length - 1].keyword === "jenkins build confirmation" &&
       text.toLowerCase().includes("yes")) {
       setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "" },])
       buildJenkinsJob()
+    } else if (application === "jenkins" &&
+      conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword.includes("confirmation") &&
+      text.toLowerCase().includes("yes")) {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "" },])
+      getJenkinsJobBuilds()
+    } else if (application === "jenkins" &&
+      conversation[conversation.length - 1].user === "system" &&
+      conversation[conversation.length - 1].keyword.includes("confirmation") &&
+      text.toLowerCase().includes("no")) {
+      setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "jenkins activity" },])
+      setTimeout(() => setConversation([...conversation,
+      { message: <div>{text}</div>, user: "user", keyword: "jenkins activity" },
+      {
+        message: <div>
+          <div>ok let us start again, please chose one of the option below on <b>{jenkins.job.toUpperCase()}</b> ?</div>
+          <br></br>
+          <div>{` - build?`}</div>
+          <div>{` - get all builds?`}</div>
+        </div>,
+        user: "system",
+        keyword: "jenkins activity"
+      }]), 1000)
     } else if (application === "jenkins") {
       setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "" },])
@@ -609,9 +719,10 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "" },
       {
         message: <div>
-          <div><span className="sorry">sorry</span>  you can choose ONLY one of the option below on <b>{jenkins.job.toUpperCase()}</b> ?</div>
+          <div><span className="sorry">sorry</span>  you can request ONLY one of the option below on <b>{jenkins.job.toUpperCase()}</b> ?</div>
           <br></br>
           <div>{` - build?`}</div>
+          <div>{` - get all builds?`}</div>
         </div>,
         user: "system",
         keyword: "jenkins activity"

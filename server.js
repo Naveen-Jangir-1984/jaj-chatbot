@@ -67,7 +67,7 @@ app.get('/getjobs', async (req, res) => {
   ).then(res => jobs = res.data.jobs);
   res.json({ jobs })
 })
-app.post('/getbuilds', async (req, res) => {
+app.post('/getjobbuilds', async (req, res) => {
   const jobname = req.body.jobname
   const crumbResponse = await axios.get(crumbIssuerApiUrl, {
     auth: {
@@ -78,7 +78,7 @@ app.post('/getbuilds', async (req, res) => {
   const crumb = crumbResponse.data.crumb;
   const crumbHeader = crumbResponse.data.crumbRequestField;
   let builds;
-  await axios.get(`${jenkinsServer}/job/${jobname}/api/json`,
+  await axios.get(`${jenkinsServer}/job/${jobname}/api/json?tree=builds[number,timestamp,result,duration]`,
     {},
     {
       headers: {
