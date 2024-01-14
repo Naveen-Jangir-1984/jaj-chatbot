@@ -823,15 +823,15 @@ function App() {
               type="text"
               value={text}
               onChange={(e) => handleUserInput(e)}
-              disabled={azure.project.length || jenkins.job || jira.project.length ?
+              disabled={azure.project.length || jenkins.job.length || jira.project.length ?
                 false : true}
             />
             {/* speech */}
             <img
               className="speech"
               style={{
-                pointerEvents: (azure.project.length || jenkins.job || jira.project.length) ? "all" : "none",
-                opacity: (azure.project.length || jenkins.job || jira.project.length) ? "1" : ".2"
+                pointerEvents: (azure.project.length || jenkins.job.length || jira.project.length) ? "all" : "none",
+                opacity: (azure.project.length || jenkins.job.length || jira.project.length) ? "1" : ".2"
               }}
               onClick={startListening}
               src={mic}
@@ -840,7 +840,7 @@ function App() {
             {/* send button */}
             <button
               onClick={() => handleSendClick()}
-              disabled={(azure.project.length || jenkins.job || jira.project.length) &&
+              disabled={(azure.project.length || jenkins.job.length || jira.project.length) &&
                 text.length ? false : true}
             >Send</button>
           </div>
