@@ -1,5 +1,6 @@
 import { ReactNode, useState, useRef, ChangeEvent } from 'react';
 import axios from 'axios';
+import mic from './mic.png'
 import './app.css';
 
 function App() {
@@ -9,6 +10,22 @@ function App() {
     user: "user" | "system",
     keyword: string,
   }
+
+  // speech to text
+  const recognition = new (window as any).webkitSpeechRecognition()
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  recognition.onresult = (event: any) => {
+    const result = event.results[0][0].transcript;
+    setText(result.toLowerCase().replace(".", ""));
+  };
+  // recognition.onspeechend = () => {
+  //   recognition.stop();
+  // };
+  const startListening = () => {
+    recognition.start();
+  };
 
   // application state variables
   const applications = ["azure", "jenkins", "jira"]
@@ -808,6 +825,17 @@ function App() {
               onChange={(e) => handleUserInput(e)}
               disabled={azure.project.length || jenkins.job || jira.project.length ?
                 false : true}
+            />
+            {/* speech */}
+            <img
+              className="speech"
+              style={{
+                pointerEvents: (azure.project.length || jenkins.job || jira.project.length) ? "all" : "none",
+                opacity: (azure.project.length || jenkins.job || jira.project.length) ? "1" : ".2"
+              }}
+              onClick={startListening}
+              src={mic}
+              alt="speech"
             />
             {/* send button */}
             <button
