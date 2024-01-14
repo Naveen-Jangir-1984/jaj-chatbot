@@ -511,7 +511,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "azure issue type" },
       {
         message: <div>
-          <div>please confirm to create an issue?</div>
+          <div>are you sure to create an issue?</div>
           <br></br>
           <div> - yes / no</div>
         </div>,
@@ -617,7 +617,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "jira issue type" },
       {
         message: <div>
-          <div>please confirm to create an issue?</div>
+          <div>are you sure to create an issue?</div>
           <br></br>
           <div> - yes / no</div>
         </div>,
@@ -675,7 +675,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "build" },
       {
         message: <div>
-          <div>please confirm on build?</div>
+          <div>pare you sure to build?</div>
           <br></br>
           <div> - yes / no</div>
         </div>, user: "system", keyword: "jenkins build confirmation"
@@ -691,7 +691,7 @@ function App() {
       { message: <div>{text}</div>, user: "user", keyword: "all builds" },
       {
         message: <div>
-          <div>please confirm on extracting all builds for <b>{jenkins.job}</b> ?</div>
+          <div>are you sure on getting all builds for <b>{jenkins.job}</b> ?</div>
           <br></br>
           <div> - yes / no</div>
         </div>, user: "system", keyword: "jenkins all builds confirmation"
