@@ -831,7 +831,7 @@ function App() {
               className="speech"
               style={{
                 pointerEvents: (azure.project.length || jenkins.job.length || jira.project.length) ? "all" : "none",
-                opacity: (azure.project.length || jenkins.job.length || jira.project.length) ? "1" : ".2"
+                opacity: (azure.project.length || jenkins.job.length || jira.project.length) ? "1" : ".2",
               }}
               onClick={startListening}
               src={mic}
