@@ -162,6 +162,17 @@ select {
   border-radius: 5px;
 }
 
+table, th, tr, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+th {
+  background-color: lightblue;
+}
+th, td {
+  padding: 3px 10px;
+}
+
 h4 {
   border-radius: 5px;
   padding: 10px 20px;
