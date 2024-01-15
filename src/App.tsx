@@ -580,8 +580,13 @@ function App() {
       setTimeout(() => setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "azure issue type" },
       {
-        message: <div>
-          <div>are you sure to create an issue?</div>
+        message: <div className="confirmation">
+          <div>please confirm to create an issue as per below?</div>
+          <br></br>
+          <div><b>Project:</b> {azure.project}</div>
+          <div><b>Issue type:</b> {issuetype}</div>
+          <div><b>Issue Title:</b> {azure.issue.title}</div>
+          <div><b>Description:</b> {azure.issue.description}</div>
           <br></br>
           <div> - yes / no</div>
         </div>,
@@ -686,8 +691,13 @@ function App() {
       setTimeout(() => setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "jira issue type" },
       {
-        message: <div>
-          <div>are you sure to create an issue?</div>
+        message: <div className="confirmation">
+          <div>please confirm to create an issue as per below?</div>
+          <br></br>
+          <div><b>Project:</b> {jira.project}</div>
+          <div><b>Issue type:</b> {issuetype}</div>
+          <div><b>Issue Title:</b> {jira.issue.title}</div>
+          <div><b>Description:</b> {jira.issue.description}</div>
           <br></br>
           <div> - yes / no</div>
         </div>,
@@ -744,8 +754,8 @@ function App() {
       setTimeout(() => setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "build" },
       {
-        message: <div>
-          <div>pare you sure to build?</div>
+        message: <div className="confirmation">
+          <div>please confirm to build {jenkins.job} ?</div>
           <br></br>
           <div> - yes / no</div>
         </div>, user: "system", keyword: "jenkins build confirmation"
@@ -760,8 +770,8 @@ function App() {
       setTimeout(() => setConversation([...conversation,
       { message: <div>{text}</div>, user: "user", keyword: "all builds" },
       {
-        message: <div>
-          <div>are you sure on getting all builds for <b>{jenkins.job}</b> ?</div>
+        message: <div className="confirmation">
+          <div>please confirm on getting all builds for <b>{jenkins.job}</b> ?</div>
           <br></br>
           <div> - yes / no</div>
         </div>, user: "system", keyword: "jenkins all builds confirmation"
