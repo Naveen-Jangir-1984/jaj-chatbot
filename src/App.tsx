@@ -1,6 +1,7 @@
 import { ReactNode, useState, useRef, ChangeEvent } from 'react';
 import axios from 'axios';
 import mic from './mic.png'
+import send from './send.png'
 import './app.css';
 
 function App() {
@@ -31,11 +32,14 @@ function App() {
   const applications = ["azure", "jenkins", "jira"]
   const [application, setApplication] = useState('')
   const [project, setProject] = useState('')
+  const [release, setRelease] = useState('')
   const [conversation, setConversation] = useState<ConversationType[]>([])
   const [text, setText] = useState('')
   const [azure, setAzure] = useState({
     projects: [],
     project: "",
+    releases: [],
+    release: "",
     issue: { title: "", description: "", type: "" }
   })
   const [jenkins, setJenkins] = useState({
@@ -47,6 +51,8 @@ function App() {
   const [jira, setJira] = useState({
     projects: [],
     project: "",
+    releases: [],
+    release: "",
     issue: { title: "", description: "", type: "" }
   })
 
@@ -69,6 +75,21 @@ function App() {
             name: pro.name
           }
         })
+      })
+      )
+  };
+  const getAzureProjectReleases = async (project: string) => {
+    await axios.post(
+      `http://localhost:8000/getAzureProjectReleases`, { project: project })
+      // .then(res => console.log(res.data))
+      .then(res => setAzure({
+        ...azure, project: project, releases: res.data.data.status ?
+          res.data.data.value.map((pro: { id: string, name: string }) => {
+            return {
+              id: pro.id,
+              name: pro.name
+            }
+          }) : []
       })
       )
   };
@@ -363,27 +384,47 @@ function App() {
     if (option === "") {
       setProject("")
       setAzure({
-        projects: [], project: "", issue: {
+        projects: [], project: "", releases: [], release: "", issue: {
           title: "", description: "", type: ""
         }
       })
       setJenkins({ jobs: [], job: "", builds: [], build: "" })
-      setJira({ projects: [], project: "", issue: { title: "", description: "", type: "" } })
+      setJira({
+        projects: [], project: "", releases: [], release: "", issue: {
+          title: "", description: "", type: ""
+        }
+      })
     }
     setApplication(option)
     switch (option) {
       case "azure":
-        setJira({ projects: [], project: "", issue: { title: "", description: "", type: "" } })
+        setJira({
+          projects: [], project: "", releases: [], release: "", issue: {
+            title: "", description: "", type: ""
+          }
+        })
         setJenkins({ jobs: [], job: "", builds: [], build: "" })
         getAzureProjects()
         break;
       case "jenkins":
-        setAzure({ projects: [], project: "", issue: { title: "", description: "", type: "" } })
-        setJira({ projects: [], project: "", issue: { title: "", description: "", type: "" } })
+        setAzure({
+          projects: [], project: "", releases: [], release: "", issue: {
+            title: "", description: "", type: ""
+          }
+        })
+        setJira({
+          projects: [], project: "", releases: [], release: "", issue: {
+            title: "", description: "", type: ""
+          }
+        })
         getJenkinsJobs()
         break;
       case "jira":
-        setAzure({ projects: [], project: "", issue: { title: "", description: "", type: "" } })
+        setAzure({
+          projects: [], project: "", releases: [], release: "", issue: {
+            title: "", description: "", type: ""
+          }
+        })
         setJenkins({ jobs: [], job: "", builds: [], build: "" })
         getJiraProjects()
         break;
@@ -438,6 +479,35 @@ function App() {
         </div>,
         user: "system",
         keyword: "jira activity"
+      }])
+    }
+    getAzureProjectReleases(option)
+    setTimeout(() => scrollToBottom(), 1)
+  }
+
+  // handle project release selection
+  const handleProjectReleaseSelection = (e: ChangeEvent<HTMLSelectElement>) => {
+    const option = e.target.value
+    setRelease(option)
+    if (!option.length) {
+      setAzure({ ...azure, release: "" })
+    }
+    if (option === azure.release ||
+      !option.length) return
+    if (application === "azure") {
+      setAzure({ ...azure, release: option })
+    }
+    if (application === "azure") {
+      setConversation([...conversation, {
+        message: <div>
+          <div>which below activity you wish to perform on <b>{option.toUpperCase()}</b> ?</div>
+          <br></br>
+          <div>{` - get stories and bugs with statuses?`}</div>
+          <div>{` - get stories with statuses?`}</div>
+          <div>{` - get bugs with statuses?`}</div>
+        </div>,
+        user: "system",
+        keyword: "azure activity"
       }])
     }
     setTimeout(() => scrollToBottom(), 1)
@@ -810,6 +880,18 @@ function App() {
                     ""
               }
             </select> : ""}
+            {/* select azure/jira project releases */}
+            {application === "azure" && azure.project.length && azure.releases.length ?
+              <select
+                className="releases"
+                value={release}
+                onChange={(e) => handleProjectReleaseSelection(e)}
+              >
+                <option value="">-- release --</option>
+                {azure.releases.length ? azure.releases.map((release: { name: string }, i) =>
+                  <option key={i} value={release.name}>{release.name}</option>) :
+                  ""}
+              </select> : ""}
             {/* <div className="dates">
               <label>FROM</label>
               <input type="date" disabled={application.length ? false : true} />
@@ -831,18 +913,25 @@ function App() {
               className="speech"
               style={{
                 pointerEvents: (azure.project.length || jenkins.job.length || jira.project.length) ? "all" : "none",
-                opacity: (azure.project.length || jenkins.job.length || jira.project.length) ? "1" : ".2",
+                opacity: (azure.project.length || jenkins.job.length || jira.project.length) ? ".9" : ".1",
               }}
               onClick={startListening}
               src={mic}
               alt="speech"
             />
             {/* send button */}
-            <button
+            <img
+              className="send"
+              style={{
+                pointerEvents: (azure.project.length || jenkins.job.length || jira.project.length) &&
+                  text.length ? "all" : "none",
+                opacity: (azure.project.length || jenkins.job.length || jira.project.length) &&
+                  text.length ? ".9" : ".1"
+              }}
               onClick={() => handleSendClick()}
-              disabled={(azure.project.length || jenkins.job.length || jira.project.length) &&
-                text.length ? false : true}
-            >Send</button>
+              src={send}
+              alt="send"
+            />
           </div>
         </div>
       </div>

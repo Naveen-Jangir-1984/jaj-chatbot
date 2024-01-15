@@ -23,6 +23,21 @@ app.get('/getAzureProjects', async (req, res) => {
   }).then(res => data = res.data);
   res.json({ data })
 })
+app.post('/getAzureProjectReleases', async (req, res) => {
+  const project = req.body.project
+  let data;
+  try {
+    await axios.get(`https://dev.azure.com/${azureDevOpsOrganization}/${project}/_apis/release/releases?api-version=6.0-preview.8`, {
+      headers: {
+        Authorization: `Basic ${btoa(`:${azureDevOpsPersonalAccessToken}`)}`,
+      },
+    }).then(res => data = { status: true, releases: res.data.value });
+  } catch (error) {
+    console.log(error)
+    data = { status: false, releases: [] }
+  }
+  res.json({ data })
+})
 app.post('/createAzureIssue', async (req, res) => {
   const { project, issue } = req.body
   let data;
