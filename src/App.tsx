@@ -823,7 +823,10 @@ function App() {
   // JSX code
   return (
     <div className="app">
-      <div className="head">HEADER</div>
+      {/* header */}
+      <div className="head">
+        <h5>CHATBOT</h5>
+      </div>
       {/* display messages */}
       <div className="display">
         <div className="messages"
@@ -862,28 +865,29 @@ function App() {
             {/* select azure/jenkins/jira projects */}
             {(application === "azure" && azure.projects.length) ||
               (application === "jenkins" && jenkins.jobs.length) ||
-              (application === "jira" && jira.projects.length) ? <select
-                className={jenkins.jobs.length ? "jobs" : "projects"}
+              (application === "jira" && jira.projects.length) ?
+              <select
+                className={jenkins.jobs.length ? "job" : "project"}
                 value={project}
                 onChange={(e) => handleProjectSelection(e)}
               >
-              <option value="">{jenkins.jobs.length ? "-- job --" : "-- project --"}</option>
-              {azure.projects.length ?
-                azure.projects.map((pro: { id: string, name: string }, i) =>
-                  <option key={i} value={pro.name}>{pro.name}</option>) :
-                jenkins.jobs.length ?
-                  jenkins.jobs.map((name, i) =>
-                    <option key={i} value={name}>{name}</option>) :
-                  jira.projects.length ?
-                    jira.projects.map((pro: { id: string, name: string }, i) =>
-                      <option key={i} value={pro.name}>{pro.name}</option>) :
-                    ""
-              }
-            </select> : ""}
+                <option value="">{jenkins.jobs.length ? "-- job --" : "-- project --"}</option>
+                {azure.projects.length ?
+                  azure.projects.map((pro: { id: string, name: string }, i) =>
+                    <option key={i} value={pro.name}>{pro.name}</option>) :
+                  jenkins.jobs.length ?
+                    jenkins.jobs.map((name, i) =>
+                      <option key={i} value={name}>{name}</option>) :
+                    jira.projects.length ?
+                      jira.projects.map((pro: { id: string, name: string }, i) =>
+                        <option key={i} value={pro.name}>{pro.name}</option>) :
+                      ""
+                }
+              </select> : ""}
             {/* select azure/jira project releases */}
             {application === "azure" && azure.project.length && azure.releases.length ?
               <select
-                className="releases"
+                className="release"
                 value={release}
                 onChange={(e) => handleProjectReleaseSelection(e)}
               >
@@ -904,6 +908,7 @@ function App() {
             <input
               type="text"
               value={text}
+              placeholder="please type or speak to get a prompt..."
               onChange={(e) => handleUserInput(e)}
               disabled={azure.project.length || jenkins.job.length || jira.project.length ?
                 false : true}
@@ -935,7 +940,10 @@ function App() {
           </div>
         </div>
       </div>
-      <div className="foot">FOOTER</div>
+      {/* footer */}
+      <div className="foot">
+        <div>Developed with Cognizant resources.</div>
+      </div>
     </div>
   );
 }
